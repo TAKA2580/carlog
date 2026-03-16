@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="38" fill="#f59e0b"/>
+  <!-- car body -->
+  <path d="M148 112H44V88l18-32h72l18 32v24z" fill="#1a1a1a"/>
+  <!-- windscreen highlight -->
+  <path d="M70 90h52l-10-22H80z" fill="#f59e0b" opacity="0.35"/>
+  <!-- left wheel -->
+  <circle cx="66" cy="120" r="18" fill="#1a1a1a"/>
+  <circle cx="66" cy="120" r="8"  fill="#f59e0b" opacity="0.55"/>
+  <!-- right wheel -->
+  <circle cx="126" cy="120" r="18" fill="#1a1a1a"/>
+  <circle cx="126" cy="120" r="8"  fill="#f59e0b" opacity="0.55"/>
+</svg>

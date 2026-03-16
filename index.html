@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CarLog">
+  <link rel="manifest" href="manifest.json">
+  <title>CarLog</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --amber:#f59e0b;--amber-dim:rgba(245,158,11,.12);--amber-glow:rgba(245,158,11,.25);
+      --surface:#111113;--surface2:#1a1a1c;--surface3:#222224;
+      --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.04);
+      --text:#f4f4f5;--text2:#a1a1aa;--text3:#52525b;
+      --red:#f43f5e;--green:#22c55e;--cyan:#22d3ee;
+    }
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{background:#000;color:var(--text);font-family:'Inter','Noto Sans JP',system-ui,sans-serif}
+    #root{min-height:100vh}
+    .spin{width:36px;height:36px;border:2.5px solid var(--surface3);border-top-color:var(--amber);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 14px}
+    @keyframes sp{to{transform:rotate(360deg)}}
+    #loading{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column}
+    ::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+
+    /* Cards */
+    .crd{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:18px}
+    .crd-sm{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px}
+
+    /* Rows */
+    .row{border-bottom:1px solid var(--border2)}
+    .row:last-child{border-bottom:none}
+
+    /* Nav */
+    .bottom-nav{
+      position:fixed;bottom:0;left:0;right:0;
+      background:rgba(0,0,0,.88);
+      backdrop-filter:blur(24px) saturate(1.8);
+      -webkit-backdrop-filter:blur(24px) saturate(1.8);
+      border-top:1px solid var(--border);
+      z-index:90;display:flex;justify-content:space-around;
+      padding:8px 0 max(10px,env(safe-area-inset-bottom))
+    }
+    .nav-item{
+      display:flex;flex-direction:column;align-items:center;gap:4px;
+      padding:6px 12px;cursor:pointer;border:none;background:none;
+      color:var(--text3);font-size:9.5px;font-weight:500;letter-spacing:.3px;
+      transition:color .2s;min-width:52px
+    }
+    .nav-item.active{color:var(--amber)}
+    .nav-item svg{transition:transform .2s}
+    .nav-item.active svg{transform:scale(1.1)}
+
+    /* Hero */
+    .hero{
+      background:linear-gradient(135deg,#1c1300 0%,#0d0900 55%,#111113 100%);
+      border:1px solid rgba(245,158,11,.18);
+      border-radius:24px;padding:22px;position:relative;overflow:hidden
+    }
+    .hero::after{
+      content:'';position:absolute;top:-60px;right:-60px;
+      width:220px;height:220px;
+      background:radial-gradient(circle,rgba(245,158,11,.12) 0%,transparent 65%);
+      pointer-events:none
+    }
+
+    /* Sheet / Modal */
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.8);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      z-index:100;display:flex;align-items:flex-end;justify-content:center;
+      animation:ov-in .2s ease
+    }
+    @media(min-width:600px){.overlay{align-items:center}}
+    @keyframes ov-in{from{opacity:0}to{opacity:1}}
+    .sheet{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:28px 28px 0 0;
+      padding:12px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+      animation:sheet-spring .34s cubic-bezier(.34,1.4,.64,1)
+    }
+    @media(min-width:600px){.sheet{border-radius:24px;padding:28px}}
+    @keyframes sheet-in{from{transform:translateY(100%);opacity:.5}to{transform:translateY(0);opacity:1}}
+    .drag-handle{width:36px;height:4px;background:var(--surface3);border-radius:2px;margin:8px auto 20px}
+
+    /* Buttons */
+    .btn-primary{
+      background:var(--amber);color:#000;border:none;border-radius:14px;
+      padding:13px 22px;font-weight:700;cursor:pointer;font-size:14px;
+      display:flex;align-items:center;gap:7px;
+      transition:transform .15s,box-shadow .15s;
+      box-shadow:0 4px 16px rgba(245,158,11,.28)
+    }
+    .btn-primary:active{transform:scale(.97)}
+    .btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+    .btn-ghost{
+      background:transparent;border:1px solid var(--border);color:var(--text2);
+      border-radius:12px;padding:10px 16px;cursor:pointer;font-size:13px;
+      transition:background .15s,border-color .15s
+    }
+    .btn-ghost:active{background:var(--surface3)}
+    .btn-icon{
+      background:none;border:none;cursor:pointer;
+      padding:6px;color:var(--text3);border-radius:10px;
+      transition:background .12s,color .12s;display:flex;align-items:center;justify-content:center
+    }
+    .btn-icon:active{background:var(--surface3);color:var(--text)}
+
+    /* Quick action buttons on home */
+    .quick-btn{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:18px;padding:16px 14px;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;gap:8px;
+      transition:background .15s,border-color .15s,transform .15s;
+      color:var(--text);font-size:12px;font-weight:600
+    }
+    .quick-btn:active{transform:scale(.97);background:var(--surface3)}
+    .quick-btn.amber{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)}
+
+    /* Section title */
+    .stitle{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+
+    /* Template chips — always visible grid */
+    .tmpl-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+    .tmpl-chip{
+      padding:7px 13px;border-radius:20px;font-size:12px;font-weight:500;
+      background:var(--surface);border:1px solid var(--border);
+      color:var(--text2);cursor:pointer;
+      transition:background .12s,border-color .12s,color .12s,transform .1s;
+      white-space:nowrap
+    }
+    .tmpl-chip:active{transform:scale(.94)}
+    .tmpl-chip.selected{background:var(--amber-dim);border-color:var(--amber-glow);color:var(--amber);font-weight:600}
+
+    /* Tab slide animation */
+    .tab-pane{animation:tab-in .2s cubic-bezier(.4,0,.2,1) both}
+    @keyframes tab-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Sheet spring animation */
+    @keyframes sheet-spring{from{transform:translateY(110%)}to{transform:translateY(0)}}
+
+    /* Step dots for multi-step form */
+    .step-dot{width:6px;height:6px;border-radius:50%;background:var(--surface3);transition:background .2s,transform .2s}
+    .step-dot.active{background:var(--amber);transform:scale(1.3)}
+
+    /* Pulse for urgent items */
+    @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,.25)}50%{box-shadow:0 0 0 5px rgba(244,63,94,.06)}}
+    .urgent-pulse{animation:pulse-border 2.5s ease infinite}
+
+    /* Empty state */
+    .empty-state{text-align:center;padding:44px 20px}
+
+    /* Nav active dot */
+    .nav-item.active::after{
+      content:'';display:block;width:4px;height:4px;border-radius:50%;
+      background:var(--amber);margin:-2px auto 0;
+    }
+
+    /* Form inputs */
+    .finp{
+      width:100%;background:var(--surface);border:1px solid var(--border);
+      border-radius:12px;padding:11px 14px;color:var(--text);font-size:15px;
+      outline:none;transition:border-color .15s;
+      font-family:'Inter','Noto Sans JP',system-ui,sans-serif
+    }
+    .finp:focus{border-color:rgba(245,158,11,.5)}
+    .flbl{display:block;font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.2px}
+
+    input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
+    select{-webkit-appearance:none;appearance:none}
+
+    /* Banner */
+    .banner{animation:fi .25s ease}
+    @keyframes fi{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Swipe hint */
+    .shint{font-size:10px;color:var(--text3);text-align:center;padding:0 0 6px;letter-spacing:.2px}
+
+    /* Settings row */
+    .srow{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border2)}
+    .srow:last-child{border-bottom:none}
+
+    /* Card entrance animation */
+    @keyframes card-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .card-enter{animation:card-in .3s cubic-bezier(.4,0,.2,1) both}
+
+    /* Progress bar glow */
+    .prog-fill{transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+    /* Stat number */
+    .stat-num{font-family:'DM Mono','Courier New',monospace}
+
+    /* KPI cards */
+    .kpi{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 16px}
+    .kpi-accent{background:linear-gradient(135deg,#1c1300,#0d0900);border:1px solid rgba(245,158,11,.2)}
+
+    /* Fuel card bottom grid */
+    .fuel-grid-item{border-left:1px solid var(--border2);padding-left:12px}
+    .fuel-grid-item:first-child{border-left:none;padding-left:0}
+  </style>
+</head>
+<body>
+<div id="root">
+  <div id="loading">
+    <div class="spin"></div>
+    <div style="color:#636366;font-size:13px">CarLog を起動中…</div>
+  </div>
+</div>
+
+<!-- Error handler — shows visible error instead of blank screen -->
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  document.getElementById('root').innerHTML =
+    '<div style="padding:24px;color:var(--text);background:#000;min-height:100vh">' +
+    '<div style="background:#3a0f0f;border:1px solid #f43f5e;border-radius:12px;padding:16px;margin-bottom:16px">' +
+    '<div style="color:#fb7185;font-weight:700;margin-bottom:8px">⚠️ 起動エラー</div>' +
+    '<div style="font-size:12px;color:#fca5a5;word-break:break-all">' + msg + '</div>' +
+    '<div style="font-size:11px;color:#636366;margin-top:6px">行 ' + line + ' 列 ' + col + '</div>' +
+    '</div>' +
+    '<div style="font-size:12px;color:#636366">ページを再読み込みしてください。繰り返す場合はスクリーンショットをお送りください。</div>' +
+    '</div>';
+  return false;
+};
+window.addEventListener('unhandledrejection', function(e) {
+  document.getElementById('root').innerHTML =
+    '<div style="padding:24px;color:var(--text);background:#000">' +
+    '<div style="background:#3a0f0f;border:1px solid #f43f5e;border-radius:12px;padding:16px">' +
+    '<div style="color:#fb7185;font-weight:700;margin-bottom:8px">⚠️ 非同期エラー</div>' +
+    '<div style="font-size:12px;color:#fca5a5">' + String(e.reason) + '</div>' +
+    '</div></div>';
+});
+</script>
+
+<!-- IndexedDB -->
+<script>
+var idb = {
+  _db: null,
+  _open: function() {
+    var self = this;
+    if (self._db) return Promise.resolve(self._db);
+    return new Promise(function(res, rej) {
+      var r = indexedDB.open('carlog', 1);
+      r.onupgradeneeded = function(e) { e.target.result.createObjectStore('kv'); };
+      r.onsuccess = function(e) { self._db = e.target.result; res(self._db); };
+      r.onerror = function() { rej(r.error); };
+    });
+  },
+  get: function(key) {
+    return this._open().then(function(db) {
+      return new Promise(function(res, rej) {
+        var r = db.transaction('kv','readonly').objectStore('kv').get(key);
+        r.onsuccess = function() { res(r.result != null ? {value: r.result} : null); };
+        r.onerror = function() { rej(r.error); };
+      });
+    });
+  },
+  set: function(key, value) {
+    return this._open().then(function(db) {
+      return new Promise(function(res, rej) {
+        var r = db.transaction('kv','readwrite').objectStore('kv').put(value, key);
+        r.onsuccess = function() { res({key:key, value:value}); };
+        r.onerror = function() { rej(r.error); };
+      });
+    });
+  }
+};
+</script>
+
+<!-- React CDN only - no Recharts needed -->
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+
+<!-- App (pure React.createElement — no JSX, no Babel, no htm) -->
+<script>
+(function() {
+  'use strict';
+
+  // Verify dependencies
+  if (!window.React)    throw new Error('React が読み込まれていません');
+  if (!window.ReactDOM) throw new Error('ReactDOM が読み込まれていません');
+
+  var h = React.createElement;
+  var useState    = React.useState;
+  var useEffect   = React.useEffect;
+  var useMemo     = React.useMemo;
+  var useRef      = React.useRef;
+  var useCallback = React.useCallback;
+
+  // ── SVG Charts (no external lib) ──────────────────────────────────────────
+  var PAD = {top:8, right:8, bottom:24, left:34};
+
+  function SvgLine(props) {
+    // props: data (array of objects), xKey, yKey, color, height, label
+    var data = props.data || [];
+    var W = 400, H = props.height || 130;
+    var pl=PAD.left, pr=PAD.right, pt=PAD.top, pb=PAD.bottom;
+    var iw = W-pl-pr, ih = H-pt-pb;
+    if (!data.length) return h('div',{style:{height:H,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text3)',fontSize:12}},'データなし');
+    var vals = data.map(function(d){return +d[props.yKey];});
+    var mn = Math.min.apply(null,vals), mx = Math.max.apply(null,vals);
+    var rng = mx - mn || 1;
+    function px(i){ return pl + i/(data.length-1||1)*iw; }
+    function py(v){ return pt + ih - (v-mn)/rng*ih; }
+    var pts = data.map(function(d,i){ return px(i)+','+py(+d[props.yKey]); }).join(' ');
+    // x labels: show up to 5
+    var xLabels = [];
+    var step = Math.ceil(data.length/5);
+    for(var i=0;i<data.length;i+=step){
+      xLabels.push(h('text',{key:i,x:px(i),y:H-6,fill:'var(--text3)',fontSize:9,textAnchor:'middle'},data[i][props.xKey]));
+    }
+    // y labels
+    var yLabels = [mn, mn+rng/2, mx].map(function(v,i){
+      return h('text',{key:i,x:pl-4,y:py(v)+4,fill:'var(--text3)',fontSize:9,textAnchor:'end'},v.toFixed(1));
+    });
+    // dots
+    var dots = data.map(function(d,i){
+      return h('circle',{key:i,cx:px(i),cy:py(+d[props.yKey]),r:3,fill:props.color||'#f59e0b'});
+    });
+    return h('div',{style:{position:'relative',width:'100%',height:H}},
+      h('svg',{viewBox:'0 0 '+W+' '+H,preserveAspectRatio:'none',style:{width:'100%',height:'100%'}},
+        // grid lines
+        h('line',{x1:pl,y1:pt,x2:pl,y2:pt+ih,stroke:'#1e1e1e',strokeWidth:1}),
+        h('line',{x1:pl,y1:pt+ih,x2:pl+iw,y2:pt+ih,stroke:'#1e1e1e',strokeWidth:1}),
+        [0.25,0.5,0.75,1].map(function(f,i){
+          return h('line',{key:i,x1:pl,y1:pt+ih*f,x2:pl+iw,y2:pt+ih*f,stroke:'#1a1a1a',strokeWidth:1,strokeDasharray:'3 3'});
+        }),
+        h('polyline',{points:pts,fill:'none',stroke:props.color||'#f59e0b',strokeWidth:2.5,strokeLinejoin:'round',strokeLinecap:'round'}),
+        dots, xLabels, yLabels
+      )
+    );
+  }
+
+  function SvgBar(props) {
+    var data = props.data || [];
+    var W = 400, H = props.height || 150;
+    var pl=PAD.left, pr=PAD.right, pt=PAD.top, pb=PAD.bottom;
+    var iw = W-pl-pr, ih = H-pt-pb;
+    if (!data.length) return h('div',{style:{height:H,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text3)',fontSize:12}},'データなし');
+    var vals = data.map(function(d){return +d[props.yKey];});
+    var mx = Math.max.apply(null,vals) || 1;
+    var bw = iw/data.length*0.6, gap = iw/data.length;
+    var bars = data.map(function(d,i){
+      var bh = (+d[props.yKey]/mx)*ih;
+      var bx = pl + gap*i + (gap-bw)/2;
+      var by = pt + ih - bh;
+      return h('rect',{key:i,x:bx,y:by,width:bw,height:bh,fill:props.color||'#f59e0b',rx:3});
+    });
+    var xLabels = data.map(function(d,i){
+      return h('text',{key:i,x:pl+gap*i+gap/2,y:H-5,fill:'var(--text3)',fontSize:9,textAnchor:'middle'},d[props.xKey]);
+    });
+    var yTicks = [0,0.5,1].map(function(f,i){
+      var v = mx*f;
+      var label = v>=10000 ? '¥'+(v/1000).toFixed(0)+'k' : v>=1000 ? (v/1000).toFixed(1)+'k' : String(Math.round(v));
+      return h('text',{key:i,x:pl-4,y:pt+ih*(1-f)+4,fill:'var(--text3)',fontSize:9,textAnchor:'end'},label);
+    });
+    return h('div',{style:{position:'relative',width:'100%',height:H}},
+      h('svg',{viewBox:'0 0 '+W+' '+H,preserveAspectRatio:'none',style:{width:'100%',height:'100%'}},
+        [0,0.5,1].map(function(f,i){
+          return h('line',{key:i,x1:pl,y1:pt+ih*(1-f),x2:pl+iw,y2:pt+ih*(1-f),stroke:'#1a1a1a',strokeWidth:1,strokeDasharray:'3 3'});
+        }),
+        h('line',{x1:pl,y1:pt+ih,x2:pl+iw,y2:pt+ih,stroke:'#1e1e1e',strokeWidth:1}),
+        bars, xLabels, yTicks
+      )
+    );
+  }
+
+  function SvgDonut(props) {
+    var data = props.data || [], colors = props.colors || PIE;
+    var sz = props.size || 130, r = sz/2*0.85, ri = sz/2*0.5, cx = sz/2, cy = sz/2;
+    var total = data.reduce(function(s,d){return s+d.value;},0) || 1;
+    var segs = [], angle = -Math.PI/2;
+    data.forEach(function(d,i){
+      var sweep = d.value/total * Math.PI*2;
+      var x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+      var x2=cx+r*Math.cos(angle+sweep), y2=cy+r*Math.sin(angle+sweep);
+      var xi1=cx+ri*Math.cos(angle+sweep), yi1=cy+ri*Math.sin(angle+sweep);
+      var xi2=cx+ri*Math.cos(angle), yi2=cy+ri*Math.sin(angle);
+      var lg = sweep>Math.PI?1:0;
+      segs.push(h('path',{key:i,
+        d:'M'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' L'+xi1+' '+yi1+' A'+ri+' '+ri+' 0 '+lg+' 0 '+xi2+' '+yi2+' Z',
+        fill:colors[i%colors.length]
+      }));
+      angle += sweep;
+    });
+    return h('svg',{width:sz,height:sz,viewBox:'0 0 '+sz+' '+sz},segs);
+  }
+
+  // ── Constants ──────────────────────────────────────────────────────────────
+  var SK = 'carlog-v5';
+  var PIE = ['#f59e0b','#f97316','#22d3ee','#a78bfa','#84cc16','#f43f5e'];
+  var TMPLS = [
+    {type:'エンジンオイル交換',   km:5000},
+    {type:'タイヤローテーション', km:10000},
+    {type:'エアフィルター交換',   km:15000},
+    {type:'ブレーキフルード交換', km:20000},
+    {type:'スパークプラグ交換',   km:30000},
+    {type:'タイヤ交換',           km:40000},
+    {type:'車検',                 km:null}
+  ];
+  var IV = {name:'Mazda3 XD Burgundy', year:'2019', mileage:46200, fuelType:'軽油'};
+  var IM = [
+    {id:1,date:'2024-11-10',type:'エンジンオイル交換',  mileage:42000,cost:4800, note:'5W-30 部分合成油'},
+    {id:2,date:'2024-09-03',type:'タイヤローテーション',mileage:40000,cost:3300, note:''},
+    {id:3,date:'2024-06-15',type:'エアフィルター交換',  mileage:38000,cost:2200, note:''},
+    {id:4,date:'2024-01-20',type:'車検',               mileage:35000,cost:68000,note:'ブレーキパッド同時交換'},
+    {id:5,date:'2023-08-05',type:'タイヤ交換',          mileage:30000,cost:52000,note:'4本セット'},
+    {id:6,date:'2023-03-10',type:'エンジンオイル交換',  mileage:27000,cost:4500, note:''}
+  ];
+  var IFU = [
+    {id:1,date:'2026-02-28',mileage:45800,liters:32.22,price:4285,unit:133.0},
+    {id:2,date:'2026-01-25',mileage:45200,liters:33.51,price:4256,unit:127.0},
+    {id:3,date:'2026-01-09',mileage:44650,liters:26.99,price:3374,unit:125.0},
+    {id:4,date:'2025-12-28',mileage:44100,liters:12.93,price:1616,unit:125.0},
+    {id:5,date:'2025-12-20',mileage:43580,liters:28.07,price:3537,unit:126.0}
+  ];
+  var IR = [
+    {id:1,type:'エンジンオイル交換',dueMileage:47000,dueDate:'2025-05-10',done:false},
+    {id:2,type:'車検',             dueMileage:null, dueDate:'2026-10-01',done:false},
+    {id:3,type:'タイヤ交換',       dueMileage:50000,dueDate:null,        done:false}
+  ];
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function fmt(n)  { return Number(n).toLocaleString('ja-JP'); }
+  function fd(d)   { if(!d) return '-'; var p=d.split('-'); return p[0]+'/'+p[1]+'/'+p[2]; }
+  function ds(d)   { return Math.floor((new Date()-new Date(d))/86400000); }
+  function dlJ(data,name) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+    a.download = name; a.click();
+  }
+  function assign() {
+    var r = {};
+    for (var i=0; i<arguments.length; i++) {
+      var o = arguments[i];
+      if (o) for (var k in o) r[k] = o[k];
+    }
+    return r;
+  }
+
+  // ── Styles ─────────────────────────────────────────────────────────────────
+  var S = {
+    inp: {width:'100%',background:'var(--surface)',border:'1px solid var(--border)',borderRadius:12,padding:'11px 14px',color:'var(--text)',fontSize:15,outline:'none',fontFamily:"'Inter','Noto Sans JP',system-ui,sans-serif"},
+    lbl: {display:'block',fontSize:11,color:'var(--text3)',marginBottom:6,fontWeight:500,letterSpacing:'.2px'},
+    crd: {background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:20,padding:18},
+    bP:  {background:'var(--amber)',color:'#000',border:'none',borderRadius:14,padding:'13px 22px',fontWeight:700,cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',gap:7,boxShadow:'0 4px 16px rgba(245,158,11,.28)'},
+    bG:  {background:'transparent',border:'1px solid var(--border)',color:'var(--text2)',borderRadius:12,padding:'10px 16px',cursor:'pointer',fontSize:13},
+    bI:  {background:'none',border:'none',cursor:'pointer',padding:'6px',color:'var(--text3)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center'}
+  };
+
+
+  // ── SVG Icons (simple inline) ───────────────────────────────────────────────
+  var ICONS = {
+    wrench:  'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z',
+    fuel:    'M3 22h12M4 9V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4M4 9h12v13H4zM16 5h2a2 2 0 0 1 2 2v4',
+    gauge:   'M12 14l4-4M3.34 19a10 10 0 1 1 17.32 0',
+    plus:    'M5 12h14M12 5v14',
+    x:       'M18 6 6 18M6 6l12 12',
+    right:   'M9 18l6-6-6-6',
+    down:    'M6 9l6 6 6-6',
+    alert:   'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01',
+    check:   'M22 11.08V12a10 10 0 1 1-5.93-9.14M9 11l3 3L22 4',
+    clock:   'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2',
+    pencil:  'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z',
+    trend:   'M23 6l-9.5 9.5-5-5L1 17M17 6h6v6',
+    car:     'M1 3h15l3 5v4H1V3zM1 12v5h18v-5M5.5 17a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM14.5 17a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z',
+    home:    'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10',
+    bell:    'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
+    bar:     'M18 20V10M12 20V4M6 20v-6',
+    save:    'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',
+    upload:  'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',
+    download:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
+    cog:     'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'
+  };
+  function Ico(props) {
+    var d = ICONS[props.name] || '';
+    var segs = d.match(/[ML][^ML]*/g) || [d];
+    return h('svg', {
+      width: props.size||16, height: props.size||16,
+      viewBox:'0 0 24 24', fill:'none',
+      stroke: props.color||'currentColor',
+      strokeWidth:2, strokeLinecap:'round', strokeLinejoin:'round',
+      style: props.style
+    }, segs.map(function(s,i){ return h('path',{key:i,d:s}); }));
+  }
+
+  // ── SwipeCard ──────────────────────────────────────────────────────────────
+  function SwipeCard(props) {
+    var st = useState(0);   var off = st[0]; var setOff = st[1];
+    var sp = useState('idle'); var ph = sp[0]; var setPh = sp[1];
+    var sc = useState(false); var cfm = sc[0]; var setCfm = sc[1];
+    var sxRef = useRef(null), dragRef = useRef(false);
+    var PEEK=72, EXEC=220;
+
+    var bg = ph.indexOf('edit')===0
+      ? 'rgba(34,197,94,' + (ph==='edit-go'?1:.18) + ')'
+      : ph.indexOf('del')===0
+      ? 'rgba(244,63,94,' + (ph==='del-go'?1:.18) + ')'
+      : 'transparent';
+    var lo = (ph==='edit-peek'||ph==='del-peek') ? 1 : 0;
+    function rst() { setOff(0); setPh('idle'); }
+
+    function oTS(e) { sxRef.current=e.touches[0].clientX; dragRef.current=false; }
+    function oTM(e) {
+      if(sxRef.current===null) return;
+      var dx=e.touches[0].clientX-sxRef.current;
+      if(Math.abs(dx)<4) return;
+      dragRef.current=true; e.preventDefault();
+      var c=Math.max(-EXEC,Math.min(EXEC,dx)); setOff(c);
+      if(c>PEEK)      setPh(c>=EXEC?'edit-go':'edit-peek');
+      else if(c<-PEEK) setPh(c<=-EXEC?'del-go':'del-peek');
+      else setPh('idle');
+    }
+    function oTE() {
+      if(!dragRef.current) { rst(); return; }
+      if(ph==='edit-go')  { rst(); setTimeout(props.onEdit,120); }
+      else if(ph==='del-go') { rst(); setTimeout(function(){setCfm(true);},120); }
+      else rst();
+      sxRef.current=null; dragRef.current=false;
+    }
+
+    return h(React.Fragment, null,
+      h('div', {style:assign({position:'relative',overflow:'hidden'},props.style)},
+        h('div', {style:{position:'absolute',inset:0,background:bg,display:'flex',alignItems:'center',
+          justifyContent:ph.indexOf('edit')===0?'flex-start':'flex-end',padding:'0 20px',
+          transition:'background .15s',pointerEvents:'none'}},
+          ph.indexOf('edit')===0 && h('div',{style:{display:'flex',alignItems:'center',gap:7,color:'#4ade80',opacity:lo,fontWeight:700,fontSize:13}},
+            h(Ico,{name:'pencil',size:16}), ph==='edit-go'?'✓ 編集':'編集'),
+          ph.indexOf('del')===0 && h('div',{style:{display:'flex',alignItems:'center',gap:7,color:'#f87171',opacity:lo,fontWeight:700,fontSize:13}},
+            ph==='del-go'?'✓ 削除':'削除', h(Ico,{name:'x',size:16}))
+        ),
+        h('div', {
+          onTouchStart:oTS, onTouchMove:oTM, onTouchEnd:oTE,
+          style:{transform:'translateX('+off+'px)',
+                 transition:dragRef.current?'none':'transform .3s cubic-bezier(.4,0,.2,1)',
+                 position:'relative',willChange:'transform'}
+        }, props.children)
+      ),
+      cfm && h('div', {
+        style:{position:'fixed',inset:0,background:'rgba(0,0,0,.75)',backdropFilter:'blur(16px)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:24,animation:'ov-in .2s ease'},
+        onClick:function(){setCfm(false);}
+      }, h('div', {
+        onClick:function(e){e.stopPropagation();},
+        style:{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:24,padding:28,width:'100%',maxWidth:320,textAlign:'center'}
+      },
+        h('div',{style:{width:48,height:48,borderRadius:14,background:'rgba(244,63,94,.1)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',border:'1px solid rgba(244,63,94,.2)'}},
+          h(Ico,{name:'x',size:22,color:'#f87171'})),
+        h('div',{style:{fontWeight:700,fontSize:17,marginBottom:8,letterSpacing:'-.3px'}},'本当に削除しますか？'),
+        h('div',{style:{fontSize:13,color:'var(--text2)',marginBottom:6}},'「'+props.label+'」'),
+        h('div',{style:{fontSize:12,color:'var(--text3)',marginBottom:24}},'この操作は元に戻せません'),
+        h('div',{style:{display:'flex',gap:10}},
+          h('button',{onClick:function(){setCfm(false);},style:{flex:1,background:'transparent',border:'1px solid var(--border)',color:'var(--text2)',borderRadius:12,padding:'12px 0',cursor:'pointer',fontSize:14,fontWeight:500}},'キャンセル'),
+          h('button',{onClick:function(){setCfm(false);props.onDelete();},style:{flex:1,background:'#f43f5e',border:'none',color:'#fff',borderRadius:12,padding:'12px 0',cursor:'pointer',fontSize:14,fontWeight:700,boxShadow:'0 4px 12px rgba(244,63,94,.3)'}},'削除する')
+        )
+      ))
+    );
+  }
+
+  // ── FuelForm ───────────────────────────────────────────────────────────────
+  function FuelForm(props) {
+    var fF=props.fF, setFF=props.setFF;
+    useEffect(function(){ if(!fF.date) setFF(function(p){return assign(p,{date:new Date().toISOString().slice(0,10)});}); },[]);
+    useEffect(function(){
+      var l=parseFloat(fF.liters), pr=parseFloat(fF.price);
+      if(l>0&&pr>0) setFF(function(v){return assign(v,{unit:(pr/l).toFixed(1)});});
+    },[fF.liters,fF.price]);
+    var au = parseFloat(fF.liters)>0 && parseFloat(fF.price)>0;
+    var sg = props.latestMileage ? props.latestMileage+600 : null;
+    var ok = fF.date && fF.mileage && fF.liters && fF.price;
+    var uStyle = au ? assign(S.inp,{color:'var(--amber)',background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)'}) : S.inp;
+
+    return h('div',{style:{display:'flex',flexDirection:'column',gap:16}},
+      h('div',null,
+        h('label',{style:S.lbl},'日付'),
+        h('input',{type:'date',style:S.inp,value:fF.date,onChange:function(e){setFF(function(p){return assign(p,{date:e.target.value});})}})
+      ),
+      h('div',null,
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
+          h('label',{style:assign(S.lbl,{marginBottom:0})},'走行距離 (km)'),
+          sg&&!fF.mileage ? h('button',{
+            onClick:function(){setFF(function(p){return assign(p,{mileage:String(sg)});});},
+            style:{fontSize:11,color:'var(--amber)',background:'var(--amber-dim)',border:'1px solid var(--amber-glow)',borderRadius:8,padding:'3px 10px',cursor:'pointer',fontWeight:600}
+          },'↑ '+fmt(sg)) : null
+        ),
+        props.latestMileage ? h('div',{style:{fontSize:11,color:'var(--text3)',marginBottom:7,fontFamily:"'DM Mono',monospace"}},'前回 '+fmt(props.latestMileage)+' km') : null,
+        h('input',{type:'number',style:S.inp,placeholder:sg?String(sg):'46200',inputMode:'numeric',value:fF.mileage,onChange:function(e){setFF(function(p){return assign(p,{mileage:e.target.value});})}})
+      ),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+        h('div',null,
+          h('label',{style:S.lbl},'給油量 (L)'),
+          h('input',{type:'number',style:S.inp,placeholder:'32.00',inputMode:'decimal',value:fF.liters,onChange:function(e){setFF(function(p){return assign(p,{liters:e.target.value});});}})
+        ),
+        h('div',null,
+          h('label',{style:S.lbl},'合計金額 (円)'),
+          h('input',{type:'number',style:S.inp,placeholder:'4000',inputMode:'numeric',value:fF.price,onChange:function(e){setFF(function(p){return assign(p,{price:e.target.value});});}})
+        )
+      ),
+      h('div',null,
+        h('label',{style:assign(S.lbl,{display:'flex',alignItems:'center',gap:7})},
+          '単価 (円/L)',
+          au ? h('span',{style:{fontSize:10,color:'var(--amber)',background:'var(--amber-dim)',border:'1px solid var(--amber-glow)',borderRadius:5,padding:'1px 7px',fontWeight:600}},'自動計算') : null
+        ),
+        h('input',{type:'number',style:uStyle,placeholder:'給油量と金額から自動計算',inputMode:'decimal',value:fF.unit,onChange:function(e){setFF(function(p){return assign(p,{unit:e.target.value});})}})
+      ),
+      !ok ? h('div',{style:{fontSize:11,color:'var(--text3)',display:'flex',alignItems:'center',gap:5}},
+        h('span',{style:{color:'var(--red)'}},'●'),' 日付・走行距離・給油量・金額は必須です') : null,
+      h('div',{style:{display:'flex',gap:10,marginTop:4}},
+        h('button',{className:'btn-ghost',style:S.bG,onClick:props.onCancel},'キャンセル'),
+        h('button',{className:'btn-primary',style:assign(S.bP,{flex:1,justifyContent:'center'}),onClick:props.onSave,disabled:!ok},'保存する')
+      )
+    );
+  }
+
+  // ── App ────────────────────────────────────────────────────────────────────
+  function App() {
+    var ts = useState(0);   var tab=ts[0],setTab=ts[1];
+    var vs = useState(IV);  var vehicle=vs[0],setVehicle=vs[1];
+    var ms = useState(IM);  var maint=ms[0],setMaint=ms[1];
+    var fs = useState(IFU); var fuel=fs[0],setFuel=fs[1];
+    var rs = useState(IR);  var remind=rs[0],setRemind=rs[1];
+    var mo = useState(null); var modal=mo[0],setModal=mo[1];
+    var ei = useState(null); var editId=ei[0],setEditId=ei[1];
+    var tp = useState(false); var tmpl=tp[0],setTmpl=tp[1];
+    var ss = useState('idle'); var saveSt=ss[0],setSaveSt=ss[1];
+    var ie = useState(''); var impErr=ie[0],setImpErr=ie[1];
+    var loaded=useRef(false), iref=useRef();
+
+    var eM={date:'',type:'',mileage:'',cost:'',note:''};
+    var eF={date:'',mileage:'',liters:'',price:'',unit:''};
+    var eR={type:'',dueMileage:'',dueDate:''};
+    var mfs=useState(eM); var mF=mfs[0],setMF=mfs[1];
+    var ffs=useState(eF); var fF=ffs[0],setFF=ffs[1];
+    var rfs=useState(eR); var rF=rfs[0],setRF=rfs[1];
+    var vfs=useState(IV); var vF=vfs[0],setVF=vfs[1];
+
+    // Storage load
+    useEffect(function(){
+      idb.get(SK).then(function(r){
+        if(r && r.value) {
+          try {
+            var d=JSON.parse(r.value);
+            if(d.vehicle) setVehicle(d.vehicle);
+            if(d.maint && d.maint.length)  setMaint(d.maint);
+            if(d.fuel  && d.fuel.length)   setFuel(d.fuel);
+            if(d.remind && d.remind.length) setRemind(d.remind);
+          } catch(e) { console.warn('parse error',e); }
+        }
+      }).catch(function(e){console.warn('load:',e);}).then(function(){loaded.current=true;});
+    },[]);
+
+    // Debounced save
+    var saveTimer=useRef(null);
+    useEffect(function(){
+      clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(function(){
+        if(!loaded.current) return;
+        setSaveSt('saving');
+        idb.set(SK, JSON.stringify({vehicle:vehicle,maint:maint,fuel:fuel,remind:remind}))
+          .then(function(){ setSaveSt('saved'); setTimeout(function(){setSaveSt('idle');},2000); })
+          .catch(function(e){ console.warn('save:',e); setSaveSt('error'); setTimeout(function(){setSaveSt('idle');},3000); });
+      }, 600);
+      return function(){clearTimeout(saveTimer.current);};
+    },[vehicle,maint,fuel,remind]);
+
+    // Derived
+    var cur = vehicle.mileage;
+    var sfuel = useMemo(function(){ return fuel.slice().sort(function(a,b){return a.date<b.date?-1:1;}); },[fuel]);
+    var fChart = useMemo(function(){
+      var r=[];
+      for(var i=1;i<sfuel.length;i++){
+        var dist=sfuel[i].mileage-sfuel[i-1].mileage;
+        if(dist>0) r.push({date:sfuel[i].date.slice(5),kmL:parseFloat((dist/sfuel[i].liters).toFixed(1))});
+      }
+      return r;
+    },[sfuel]);
+    var avgKmL = useMemo(function(){
+      if(!fChart.length) return '-';
+      return (fChart.reduce(function(s,d){return s+d.kmL;},0)/fChart.length).toFixed(1);
+    },[fChart]);
+    var totalCost = useMemo(function(){ return maint.reduce(function(s,m){return s+Number(m.cost);},0); },[maint]);
+    var monthlyCost = useMemo(function(){
+      var map={};
+      maint.forEach(function(m){ var k=m.date.slice(0,7); map[k]=(map[k]||0)+Number(m.cost); });
+      return Object.keys(map).sort().slice(-10).map(function(k){return{month:k.slice(5)+'月',cost:map[k]};});
+    },[maint]);
+    var monthlyKm = useMemo(function(){
+      var s=fuel.slice().sort(function(a,b){return a.date<b.date?-1:1;});
+      var map={};
+      for(var i=1;i<s.length;i++){
+        var d=s[i].mileage-s[i-1].mileage;
+        if(d>0&&d<3000){var k=s[i].date.slice(0,7);map[k]=(map[k]||0)+d;}
+      }
+      return Object.keys(map).sort().map(function(k){return{month:k.slice(5)+'月',km:map[k]};});
+    },[fuel]);
+    var catData = useMemo(function(){
+      var map={};
+      maint.forEach(function(m){map[m.type]=(map[m.type]||0)+Number(m.cost);});
+      return Object.entries(map).sort(function(a,b){return b[1]-a[1];}).map(function(e){return{name:e[0],value:e[1]};});
+    },[maint]);
+    var unitTrend = useMemo(function(){return sfuel.map(function(f){return{date:f.date.slice(5),unit:f.unit};});},[sfuel]);
+    var urgentR = remind.filter(function(r){
+      if(r.done) return false;
+      if(r.dueMileage && cur>=r.dueMileage-1000) return true;
+      if(r.dueDate && (new Date(r.dueDate)-new Date())/86400000<=30) return true;
+      return false;
+    });
+    function rPct(r) {
+      if(r.done) return 100;
+      if(r.dueMileage){
+        var last=maint.filter(function(m){return m.type===r.type;}).sort(function(a,b){return b.mileage-a.mileage;})[0];
+        var start=last?last.mileage:cur-5000;
+        return Math.min(100,Math.max(0,Math.round((cur-start)/(r.dueMileage-start)*100)));
+      }
+      if(r.dueDate){
+        var rem=(new Date(r.dueDate)-new Date())/86400000;
+        return Math.min(100,Math.max(0,Math.round((365-rem)/365*100)));
+      }
+      return 0;
+    }
+    var lfm = useMemo(function(){return fuel.length?Math.max.apply(null,fuel.map(function(f){return f.mileage;})):null;},[fuel]);
+    var lfd = useMemo(function(){return sfuel.length?sfuel[sfuel.length-1].date:null;},[sfuel]);
+
+    // CRUD helpers
+    function openAdd(t) {
+      setEditId(null);
+      if(t==='maint') setMF(assign(eM,{mileage:String(cur)}));
+      else if(t==='fuel') setFF(assign({},eF));
+      else setRF(assign({},eR));
+      setTmpl(false); setModal(t);
+    }
+    function openEdit(t,item) {
+      setEditId(item.id); setTmpl(false);
+      if(t==='maint') setMF({date:item.date,type:item.type,mileage:String(item.mileage),cost:String(item.cost),note:item.note});
+      if(t==='fuel')  setFF({date:item.date,mileage:String(item.mileage),liters:String(item.liters),price:String(item.price),unit:String(item.unit)});
+      if(t==='remind') setRF({type:item.type,dueMileage:item.dueMileage?String(item.dueMileage):'',dueDate:item.dueDate||''});
+      setModal(t);
+    }
+    function saveMaint() {
+      var r=assign(mF,{mileage:+mF.mileage,cost:+mF.cost});
+      if(editId) setMaint(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId}):x;});});
+      else setMaint(function(p){return [assign(r,{id:Date.now()})].concat(p);});
+      setModal(null);
+    }
+    function saveFuel2() {
+      var r=assign(fF,{mileage:+fF.mileage,liters:+fF.liters,price:+fF.price,unit:+fF.unit});
+      if(editId) setFuel(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId}):x;});});
+      else setFuel(function(p){return [assign(r,{id:Date.now()})].concat(p);});
+      setModal(null);
+    }
+    function saveRemind() {
+      var r=assign(rF,{dueMileage:rF.dueMileage?+rF.dueMileage:null,done:false});
+      if(editId) setRemind(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId,done:x.done}):x;});});
+      else setRemind(function(p){return p.concat([assign(r,{id:Date.now()})]);});
+      setModal(null);
+    }
+    function saveVehicle() { setVehicle(vF); setModal(null); }
+
+    function doExport() { dlJ({version:5,exportedAt:new Date().toISOString(),vehicle:vehicle,maint:maint,fuel:fuel,remind:remind},'carlog-backup.json'); }
+    function doImport(e) {
+      var file=e.target.files&&e.target.files[0]; if(!file) return;
+      var rd=new FileReader();
+      rd.onload=function(ev){
+        try{
+          var d=JSON.parse(ev.target.result);
+          if(d.vehicle)setVehicle(d.vehicle);
+          if(d.maint)setMaint(d.maint);
+          if(d.fuel)setFuel(d.fuel);
+          if(d.remind)setRemind(d.remind);
+          setImpErr(''); setModal(null);
+        }catch(err){setImpErr('JSONの読み込みに失敗しました。');}
+      };
+      rd.readAsText(file); e.target.value='';
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────
+    var TABS = [{l:'ホーム',n:'home'},{l:'メンテ',n:'wrench'},{l:'給油',n:'fuel'},{l:'リマインダー',n:'bell'},{l:'分析',n:'bar'}];
+    var crd = S.crd;
+
+    // KPI card
+    function KpiCard(label, value, color) {
+      return h('div',{className:'kpi'},
+        h('div',{style:{fontSize:10,color:'var(--text3)',fontWeight:500,marginBottom:6,letterSpacing:'.3px',textTransform:'uppercase'}},label),
+        h('div',{className:'stat-num',style:{fontSize:18,fontWeight:700,color:color||'var(--amber)',letterSpacing:'-.5px'}},value)
+      );
+    }
+
+    // Maint card
+    function MCard(m) {
+      return h(SwipeCard,{key:m.id,label:m.type,
+        onEdit:function(){openEdit('maint',m);},
+        onDelete:function(){setMaint(function(p){return p.filter(function(x){return x.id!==m.id;});});},
+        style:{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:18}},
+        h('div',{style:{borderBottom:'1px solid var(--border2)',padding:'13px 15px',display:'flex',alignItems:'center',gap:11}},
+          h('div',{style:{width:34,height:34,borderRadius:10,background:'var(--amber-dim)',border:'1px solid var(--amber-glow)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},
+            h(Ico,{name:'wrench',size:15,color:'var(--amber)'})),
+          h('div',{style:{flex:1,minWidth:0}},
+            h('div',{style:{fontWeight:600,fontSize:14,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',letterSpacing:'-.2px'}},m.type)
+          ),
+          h('div',{className:'stat-num',style:{fontSize:15,fontWeight:700,color:'var(--amber)',flexShrink:0}},'¥'+fmt(m.cost)),
+          h('div',{style:{display:'flex',gap:2,flexShrink:0,marginLeft:4}},
+            h('button',{className:'btn-icon',style:S.bI,onClick:function(){openEdit('maint',m);}},h(Ico,{name:'pencil',size:13})),
+            h('button',{className:'btn-icon',style:S.bI,onClick:function(){setMaint(function(p){return p.filter(function(x){return x.id!==m.id;});});}},h(Ico,{name:'x',size:13}))
+          )
+        ),
+        h('div',{style:{padding:'9px 15px',display:'flex',alignItems:'center',gap:14}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:5}},
+            h(Ico,{name:'clock',size:11,color:'var(--text3)'}),
+            h('span',{className:'stat-num',style:{fontSize:11,color:'var(--text3)'}},fd(m.date))
+          ),
+          h('div',{style:{display:'flex',alignItems:'center',gap:5}},
+            h(Ico,{name:'gauge',size:11,color:'var(--text3)'}),
+            h('span',{className:'stat-num',style:{fontSize:11,color:'var(--text3)'}},fmt(m.mileage)+' km')
+          ),
+          m.note ? h('div',{style:{fontSize:11,color:'var(--text3)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}},'💬 '+m.note) : null
+        )
+      );
+    }
+
+    // Reminder card
+    function RCard(r) {
+      var p=rPct(r), iu=urgentR.find(function(u){return u.id===r.id;});
+      var bc=p>=90?'var(--red)':p>=70?'var(--amber)':'var(--cyan)';
+      var bcRaw=p>=90?'#f43f5e':p>=70?'#f59e0b':'#22d3ee';
+      return h(SwipeCard,{key:r.id,label:r.type,
+        onEdit:function(){openEdit('remind',r);},
+        onDelete:function(){setRemind(function(p){return p.filter(function(x){return x.id!==r.id;});});},
+        style:{background:'var(--surface2)',border:'1px solid '+(iu?'rgba(244,63,94,.25)':'var(--border)'),borderRadius:18,animation:iu?'pulse-border 2.5s ease infinite':undefined}},
+        h('div',{style:{borderBottom:'1px solid var(--border2)',padding:'12px 15px',display:'flex',alignItems:'center',gap:10}},
+          h('button',{onClick:function(){setRemind(function(p){return p.map(function(x){return x.id===r.id?assign(x,{done:true}):x;});});},
+            style:assign(S.bI,{padding:0,flexShrink:0,color:'var(--surface3)'})},
+            h(Ico,{name:'check',size:23})),
+          h('div',{style:{flex:1,minWidth:0}},
+            h('div',{style:{fontSize:14,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',letterSpacing:'-.2px'}},r.type)
+          ),
+          h('div',{style:{display:'flex',alignItems:'center',gap:6,flexShrink:0}},
+            iu ? h('span',{style:{padding:'3px 9px',borderRadius:7,fontSize:11,fontWeight:700,background:'rgba(244,63,94,.1)',color:'#fb7185',border:'1px solid rgba(244,63,94,.25)'}},'要対応') : null,
+            h('button',{className:'btn-icon',style:S.bI,onClick:function(){openEdit('remind',r);}},h(Ico,{name:'pencil',size:13})),
+            h('button',{className:'btn-icon',style:S.bI,onClick:function(){setRemind(function(p){return p.filter(function(x){return x.id!==r.id;});});}},h(Ico,{name:'x',size:13}))
+          )
+        ),
+        h('div',{style:{padding:'12px 15px'}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:10}},
+            h('div',{style:{display:'flex',gap:18}},
+              r.dueMileage ? h('div',null,
+                h('div',{style:{fontSize:10,color:'var(--text3)',marginBottom:3,textTransform:'uppercase',letterSpacing:'.3px'}},'目標距離'),
+                h('div',{className:'stat-num',style:{fontSize:14,fontWeight:700,color:'var(--text)'}},fmt(r.dueMileage)+' km'),
+                h('div',{className:'stat-num',style:{fontSize:11,color:p>=90?'#fb7185':'var(--text3)',marginTop:2}},'残 '+fmt(r.dueMileage-cur)+' km')
+              ) : null,
+              r.dueDate ? h('div',null,
+                h('div',{style:{fontSize:10,color:'var(--text3)',marginBottom:3,textTransform:'uppercase',letterSpacing:'.3px'}},'期限日'),
+                h('div',{className:'stat-num',style:{fontSize:14,fontWeight:700,color:'var(--text)'}},fd(r.dueDate)),
+                h('div',{className:'stat-num',style:{fontSize:11,color:'var(--text3)',marginTop:2}},'残 '+Math.max(0,Math.floor((new Date(r.dueDate)-new Date())/86400000))+' 日')
+              ) : null
+            ),
+            h('div',{className:'stat-num',style:{fontSize:14,fontWeight:800,color:bc}},p+'%')
+          ),
+          h('div',{style:{height:6,borderRadius:3,background:'var(--surface3)',overflow:'hidden'}},
+            h('div',{className:'prog-fill',style:{height:'100%',borderRadius:3,width:p+'%',background:bcRaw,boxShadow:p>0?'0 0 10px '+bcRaw+'66':undefined}})
+          )
+        )
+      );
+    }
+
+    return h('div',{style:{minHeight:'100vh',background:'#000',color:'var(--text)',paddingBottom:72,fontFamily:"'Inter','Noto Sans JP',system-ui,sans-serif"}},
+
+      // ── Header ──────────────────────────────────────────────────────────
+      h('div',{style:{background:'rgba(0,0,0,.85)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderBottom:'1px solid var(--border)',padding:'0 18px',position:'sticky',top:0,zIndex:80}},
+        h('div',{style:{maxWidth:700,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:56}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+            h('div',{style:{width:34,height:34,background:'var(--amber)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(245,158,11,.35)'}},
+              h(Ico,{name:'car',size:17,color:'#000'})),
+            h('div',null,
+              h('div',{style:{fontWeight:700,fontSize:16,letterSpacing:'-.4px'}},'CarLog'),
+              h('div',{className:'stat-num',style:{fontSize:10,color:'var(--text3)'}},vehicle.name+' · '+vehicle.year)
+            )
+          ),
+          h('div',{style:{display:'flex',alignItems:'center',gap:12}},
+            saveSt==='saving' ? h('div',{style:{fontSize:10,color:'var(--text3)',display:'flex',alignItems:'center',gap:4}},h(Ico,{name:'save',size:10}),'保存中…') : null,
+            saveSt==='saved'  ? h('div',{style:{fontSize:10,color:'var(--green)',display:'flex',alignItems:'center',gap:4}},h(Ico,{name:'save',size:10}),'保存済み') : null,
+            saveSt==='error'  ? h('div',{style:{fontSize:10,color:'var(--red)'}},'保存失敗') : null,
+            h('button',{className:'btn-icon',onClick:function(){setVF(assign({},vehicle));setImpErr('');setModal('settings');},style:assign(S.bI,{color:'var(--text2)'})},
+              h(Ico,{name:'cog',size:20})),
+            h('div',null,
+              h('div',{className:'stat-num',style:{fontSize:17,fontWeight:700,color:'var(--amber)',letterSpacing:'-.5px',textAlign:'right'}},fmt(cur)),
+              h('div',{style:{fontSize:9,color:'var(--text3)',textAlign:'right',letterSpacing:'.3px'}},vehicle.fuelType+' · km')
+            )
+          )
+        )
+      ),
+
+      // Urgent banner
+      urgentR.length > 0 ? h('div',{className:'banner',style:{background:'rgba(244,63,94,.07)',borderBottom:'1px solid rgba(244,63,94,.15)',padding:'0 18px'}},
+        h('div',{style:{maxWidth:700,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:40}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:7,color:'#fb7185',fontSize:12,fontWeight:600}},
+            h(Ico,{name:'alert',size:13}),' 要対応 '+urgentR.length+' 件'),
+          h('button',{onClick:function(){setTab(3);},style:{fontSize:11,color:'#fb7185',background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.2)',borderRadius:8,padding:'4px 12px',cursor:'pointer',display:'flex',alignItems:'center',gap:3,fontWeight:600}},'確認',h(Ico,{name:'right',size:11}))
+        )
+      ) : null,
+
+      // Page content
+      h('div',{style:{maxWidth:700,margin:'0 auto',padding:'14px 16px 0'}},
+
+        // ── HOME ──
+        tab===0 ? h('div',{className:'tab-pane',style:{display:'flex',flexDirection:'column',gap:14}},
+
+          // Hero card
+          h('div',{className:'hero'},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:18}},
+              h('div',null,
+                h('div',{style:{fontSize:10,color:'rgba(245,158,11,.6)',fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',marginBottom:8}},'総走行距離'),
+                h('div',{className:'stat-num',style:{fontSize:42,fontWeight:700,color:'var(--amber)',letterSpacing:'-2px',lineHeight:.95}},
+                  fmt(cur)),
+                h('div',{style:{fontSize:12,color:'rgba(245,158,11,.5)',marginTop:4,letterSpacing:'.5px'}},vehicle.fuelType+' · KM')
+              ),
+              h('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8}},
+                h('div',{style:{width:44,height:44,background:'rgba(245,158,11,.1)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid rgba(245,158,11,.15)'}},
+                  h(Ico,{name:'car',size:22,color:'var(--amber)'}))
+              )
+            ),
+            h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:0,borderTop:'1px solid rgba(245,158,11,.1)',paddingTop:14}},
+              [['平均燃費',avgKmL+' km/L'],['メンテ総費','¥'+fmt(Math.round(totalCost/1000))+'k'],['給油回数',fuel.length+'回']].map(function(item,i){
+                return h('div',{key:item[0],style:{paddingLeft:i>0?14:0,borderLeft:i>0?'1px solid rgba(245,158,11,.1)':undefined,marginLeft:i>0?14:0}},
+                  h('div',{style:{fontSize:10,color:'rgba(245,158,11,.5)',marginBottom:4,letterSpacing:'.3px'}}),
+                  h('div',{style:{fontSize:9,color:'rgba(245,158,11,.45)',marginBottom:3,textTransform:'uppercase',letterSpacing:'.5px'}},item[0]),
+                  h('div',{className:'stat-num',style:{fontSize:14,fontWeight:700,color:'rgba(253,230,138,.9)'}},item[1])
+                );
+              })
+            )
+          ),
+
+          // Quick add — 横2ボタン、シンプルに
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+            h('button',{className:'quick-btn amber',onClick:function(){openAdd('fuel');}},
+              h('div',{style:{width:36,height:36,borderRadius:10,background:'var(--amber-dim)',border:'1px solid var(--amber-glow)',display:'flex',alignItems:'center',justifyContent:'center'}},
+                h(Ico,{name:'fuel',size:18,color:'var(--amber)'})),
+              h('div',{style:{fontSize:13,fontWeight:600,color:'var(--text)'}}, '給油記録'),
+              h('div',{style:{fontSize:10,color:'var(--text3)'}}, '今すぐ追加')
+            ),
+            h('button',{className:'quick-btn',onClick:function(){openAdd('maint');}},
+              h('div',{style:{width:36,height:36,borderRadius:10,background:'var(--surface3)',display:'flex',alignItems:'center',justifyContent:'center'}},
+                h(Ico,{name:'wrench',size:18,color:'var(--text2)'})),
+              h('div',{style:{fontSize:13,fontWeight:600,color:'var(--text)'}}, 'メンテ記録'),
+              h('div',{style:{fontSize:10,color:'var(--text3)'}}, '今すぐ追加')
+            )
+          ),
+
+          // Last fuel + stat row
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+            // 最終給油経過
+            lfd ? h('div',{className:'kpi'},
+              h('div',{style:{fontSize:10,color:'var(--text3)',fontWeight:500,marginBottom:8,textTransform:'uppercase',letterSpacing:'.3px'}},'最終給油'),
+              h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}},
+                h('div',{className:'stat-num',style:{fontSize:13,color:'var(--text)'}},fd(lfd)),
+                h('div',null,
+                  h('div',{className:'stat-num',style:{fontSize:24,fontWeight:700,color:ds(lfd)>20?'var(--amber)':'var(--text)',letterSpacing:'-1px'}},ds(lfd)),
+                  h('div',{style:{fontSize:10,color:'var(--text3)',textAlign:'right'}},'日前')
+                )
+              )
+            ) : h('div',{className:'kpi'},
+              h('div',{style:{fontSize:10,color:'var(--text3)',marginBottom:8}},'最終給油'),
+              h('div',{style:{fontSize:13,color:'var(--text3)'}},'記録なし')
+            ),
+            // 要対応件数
+            h('div',{className:'kpi',style:urgentR.length>0?{border:'1px solid rgba(244,63,94,.2)',background:'rgba(244,63,94,.04)'}:{}},
+              h('div',{style:{fontSize:10,color:'var(--text3)',fontWeight:500,marginBottom:8,textTransform:'uppercase',letterSpacing:'.3px'}},'要対応'),
+              h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}},
+                h('div',{className:'stat-num',style:{fontSize:30,fontWeight:700,color:urgentR.length>0?'#fb7185':'var(--text3)',letterSpacing:'-1px'}},urgentR.length),
+                h('div',{style:{fontSize:10,color:'var(--text3)'}}, 'リマインダー')
+              )
+            )
+          ),
+
+          // 直近メンテ
+          h('div',{className:'crd',style:{padding:0,overflow:'hidden'}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid var(--border2)'}},
+              h('div',{style:{fontWeight:600,fontSize:14,letterSpacing:'-.3px'}},'直近のメンテナンス'),
+              h('button',{onClick:function(){setTab(1);},style:{fontSize:11,color:'var(--text3)',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:2}},'すべて',h(Ico,{name:'right',size:12}))
+            ),
+            maint.slice().sort(function(a,b){return a.date<b.date?1:-1;}).slice(0,3).map(function(m){
+              return h('div',{key:m.id,className:'row',style:{padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                h('div',{style:{display:'flex',alignItems:'center',gap:11}},
+                  h('div',{style:{width:32,height:32,borderRadius:9,background:'var(--amber-dim)',border:'1px solid var(--amber-glow)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},
+                    h(Ico,{name:'wrench',size:14,color:'var(--amber)'})),
+                  h('div',null,
+                    h('div',{style:{fontSize:13,fontWeight:600,letterSpacing:'-.2px'}},m.type),
+                    h('div',{className:'stat-num',style:{fontSize:10,color:'var(--text3)',marginTop:2}},fd(m.date)+' · '+fmt(m.mileage)+' km')
+                  )
+                ),
+                h('div',{className:'stat-num',style:{fontSize:14,fontWeight:700,color:'var(--amber)',flexShrink:0,marginLeft:8}},'¥'+fmt(m.cost))
+              );
+            })
+          ),
+
+          // 燃費チャート
+          h('div',{className:'crd'},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+              h('div',{style:{fontWeight:600,fontSize:14,letterSpacing:'-.3px'}},'燃費推移'),
+              h('button',{onClick:function(){setTab(2);},style:{fontSize:11,color:'var(--text3)',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:2}},'詳細',h(Ico,{name:'right',size:12}))
+            ),
+            h(SvgLine,{data:fChart,xKey:'date',yKey:'kmL',color:'var(--amber)',height:110})
+          )
+        ) : null,
+
+        // ── MAINT ──
+        tab===1 ? h('div',{className:'tab-pane',style:{display:'flex',flexDirection:'column',gap:12}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            h('div',{className:'stitle',style:{marginBottom:0}},'メンテナンス履歴'),
+            h('button',{className:'btn-primary',style:S.bP,onClick:function(){openAdd('maint');}},h(Ico,{name:'plus',size:14}),'追加')
+          ),
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+            KpiCard('メンテ総費用','¥'+fmt(totalCost),'var(--amber)'),
+            KpiCard('記録件数',maint.length+'件','var(--text)')
+          ),
+          h('div',{className:'shint'},'右スワイプ: 編集　左スワイプ: 削除'),
+          h('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+            maint.slice().sort(function(a,b){return a.date<b.date?1:-1;}).map(function(m){return MCard(m);})
+          )
+        ) : null,
+
+        // ── FUEL ──
+        tab===2 ? (function(){
+          var desc=fuel.slice().sort(function(a,b){return a.date<b.date?1:-1;});
+          var kv=fChart.map(function(d){return d.kmL;});
+          return h('div',{style:{display:'flex',flexDirection:'column',gap:12}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              h('div',{className:'stitle',style:{marginBottom:0}},'給油・燃費記録'),
+              h('button',{className:'btn-primary',style:S.bP,onClick:function(){openAdd('fuel');}},h(Ico,{name:'plus',size:14}),'追加')
+            ),
+            // KPI
+            h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+              h('div',{className:'kpi kpi-accent'},
+                h('div',{style:{fontSize:10,color:'rgba(245,158,11,.5)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:8}},'平均燃費'),
+                h('div',{className:'stat-num',style:{fontSize:32,fontWeight:700,color:'var(--amber)',letterSpacing:'-1.5px',lineHeight:1}},avgKmL,
+                  h('span',{style:{fontSize:13,color:'rgba(245,158,11,.5)',fontWeight:400,marginLeft:4}},'km/L')),
+                h('div',{style:{display:'flex',gap:14,marginTop:10}},
+                  h('div',{style:{fontSize:10,color:'var(--text3)'}},'最高 ',h('span',{className:'stat-num',style:{color:'var(--green)'}},kv.length?Math.max.apply(null,kv):'-')),
+                  h('div',{style:{fontSize:10,color:'var(--text3)'}},'最低 ',h('span',{className:'stat-num',style:{color:'#f87171'}},kv.length?Math.min.apply(null,kv):'-'))
+                )
+              ),
+              h('div',{style:{display:'flex',flexDirection:'column',gap:10}},
+                h('div',{className:'kpi',style:{flex:1}},
+                  h('div',{style:{fontSize:10,color:'var(--text3)',fontWeight:500,marginBottom:6,textTransform:'uppercase',letterSpacing:'.3px'}},'最新単価'),
+                  desc[0] ? h('div',null,
+                    h('div',{className:'stat-num',style:{fontSize:22,fontWeight:700,color:'var(--text)',letterSpacing:'-.5px'}},'¥'+desc[0].unit),
+                    h('div',{style:{fontSize:10,color:'var(--text3)',marginTop:2}},'円 / L')
+                  ) : h('div',{style:{fontSize:13,color:'var(--text3)'}},'—')
+                ),
+                h('div',{className:'kpi',style:{flex:1}},
+                  h('div',{style:{fontSize:10,color:'var(--text3)',fontWeight:500,marginBottom:6,textTransform:'uppercase',letterSpacing:'.3px'}},'総給油費'),
+                  h('div',{className:'stat-num',style:{fontSize:16,fontWeight:700}},'¥'+fmt(fuel.reduce(function(s,f){return s+f.price;},0)))
+                )
+              )
+            ),
+            // Chart
+            h('div',{className:'crd'},
+              h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:14}},
+                h('div',{style:{fontWeight:600,fontSize:14,letterSpacing:'-.3px'}},'燃費推移'),
+                h('div',{className:'stat-num',style:{fontSize:11,color:'var(--text3)'}},'km/L')
+              ),
+              h(SvgLine,{data:fChart,xKey:'date',yKey:'kmL',color:'#f59e0b',height:140})
+            ),
+            h('div',{className:'shint'},'右スワイプ: 編集　左スワイプ: 削除'),
+            // Fuel list
+            h('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+              desc.map(function(f,i){
+                var prev=desc[i+1];
+                var kl=prev?((f.mileage-prev.mileage)/f.liters).toFixed(1):null;
+                var af=parseFloat(avgKmL), kn=kl?parseFloat(kl):null;
+                var kc=kn==null?'var(--text3)':kn>=af+0.5?'var(--green)':kn<=af-0.5?'#f87171':'var(--amber)';
+                return h(SwipeCard,{key:f.id,label:fd(f.date)+' 給油',
+                  onEdit:function(){openEdit('fuel',f);},
+                  onDelete:function(){setFuel(function(p){return p.filter(function(x){return x.id!==f.id;});});},
+                  style:{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:18}},
+                  // Top row
+                  h('div',{style:{borderBottom:'1px solid var(--border2)',padding:'12px 15px',display:'flex',alignItems:'center',justifyContent:'space-between'}},
+                    h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+                      h('div',{style:{width:30,height:30,borderRadius:9,background:'rgba(249,115,22,.1)',border:'1px solid rgba(249,115,22,.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},
+                        h(Ico,{name:'fuel',size:14,color:'#f97316'})),
+                      h('div',null,
+                        h('div',{style:{fontSize:14,fontWeight:600,letterSpacing:'-.3px'}},fd(f.date)),
+                        h('div',{className:'stat-num',style:{fontSize:10,color:'var(--text3)',marginTop:2}},
+                          fmt(f.mileage)+' km',ds(f.date)>0?h('span',{style:{marginLeft:8}},ds(f.date)+'日前'):null)
+                      )
+                    ),
+                    h('div',{style:{display:'flex',gap:4}},
+                      h('button',{className:'btn-icon',style:S.bI,onClick:function(){openEdit('fuel',f);}},h(Ico,{name:'pencil',size:13})),
+                      h('button',{className:'btn-icon',style:S.bI,onClick:function(){setFuel(function(p){return p.filter(function(x){return x.id!==f.id;});});}},h(Ico,{name:'x',size:13}))
+                    )
+                  ),
+                  // Data grid
+                  h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',padding:'11px 15px 13px'}},
+                    h('div',null,
+                      h('div',{style:{fontSize:9,color:'var(--text3)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.5px'}},'給油量'),
+                      h('div',{className:'stat-num',style:{fontSize:16,fontWeight:700}},f.liters,h('span',{style:{fontSize:10,color:'var(--text3)',marginLeft:2}},'L'))
+                    ),
+                    h('div',{className:'fuel-grid-item'},
+                      h('div',{style:{fontSize:9,color:'var(--text3)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.5px'}},'金額 / 単価'),
+                      h('div',{className:'stat-num',style:{fontSize:16,fontWeight:700}},'¥'+fmt(f.price)),
+                      h('div',{className:'stat-num',style:{fontSize:10,color:'var(--text3)',marginTop:2}},'¥'+f.unit+'/L')
+                    ),
+                    h('div',{className:'fuel-grid-item'},
+                      h('div',{style:{fontSize:9,color:'var(--text3)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.5px'}},'燃費'),
+                      kl ? [h('div',{key:'v',className:'stat-num',style:{fontSize:18,fontWeight:700,color:kc}},kl),
+                            h('div',{key:'u',style:{fontSize:10,color:'var(--text3)',marginTop:1}},'km/L')]
+                         : h('div',{style:{fontSize:14,color:'var(--surface3)',marginTop:4}},'—')
+                    )
+                  )
+                );
+              })
+            )
+          );
+        })() : null,
+
+        // ── REMINDERS ──
+        tab===3 ? h('div',{className:'tab-pane',style:{display:'flex',flexDirection:'column',gap:12}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            h('div',{className:'stitle',style:{marginBottom:0}},'リマインダー'),
+            h('button',{className:'btn-primary',style:S.bP,onClick:function(){openAdd('remind');}},h(Ico,{name:'plus',size:14}),'追加')
+          ),
+          h('div',{className:'shint'},'右スワイプ: 編集　左スワイプ: 削除'),
+          remind.filter(function(r){return !r.done;}).length > 0 ?
+            h('div',{style:{display:'flex',flexDirection:'column',gap:10}},
+              remind.filter(function(r){return !r.done;}).map(function(r){return RCard(r);})) : null,
+          remind.filter(function(r){return r.done;}).length > 0 ? h('div',null,
+            h('div',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.6px',marginBottom:10,marginTop:4}},'完了済み'),
+            h('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+              remind.filter(function(r){return r.done;}).map(function(r){
+                return h(SwipeCard,{key:r.id,label:r.type,onEdit:function(){openEdit('remind',r);},
+                  onDelete:function(){setRemind(function(p){return p.filter(function(x){return x.id!==r.id;});});},
+                  style:{background:'var(--surface)',border:'1px solid var(--border2)',borderRadius:14}},
+                  h('div',{style:{padding:'12px 15px',display:'flex',alignItems:'center',gap:10}},
+                    h('button',{onClick:function(){setRemind(function(p){return p.map(function(x){return x.id===r.id?assign(x,{done:false}):x;});});},
+                      style:assign(S.bI,{padding:0,color:'var(--green)',flexShrink:0})},h(Ico,{name:'check',size:20})),
+                    h('div',{style:{flex:1,fontSize:13,color:'var(--text3)',textDecoration:'line-through'}},r.type),
+                    h('button',{className:'btn-icon',style:S.bI,onClick:function(){setRemind(function(p){return p.filter(function(x){return x.id!==r.id;});});}},h(Ico,{name:'x',size:13}))
+                  )
+                );
+              })
+            )
+          ) : null,
+          remind.length===0 ? h('div',{className:'crd',style:{textAlign:'center',padding:'40px 20px'}},
+            h(Ico,{name:'bell',size:30,style:{margin:'0 auto 12px',opacity:.25,display:'block',color:'var(--text3)'}}),
+            h('div',{style:{fontSize:14,color:'var(--text3)',fontWeight:500}},'リマインダーがありません'),
+            h('div',{style:{fontSize:12,color:'var(--text3)',marginTop:4,opacity:.6}},'追加ボタンから登録してください')
+          ) : null
+        ) : null,
+
+        // ── ANALYTICS ──
+        tab===4 ? h('div',{className:'tab-pane',style:{display:'flex',flexDirection:'column',gap:12}},
+          h('div',{className:'stitle',style:{display:'flex',alignItems:'center',gap:6,marginBottom:0}},
+            h(Ico,{name:'trend',size:13,color:'var(--amber)'}),'費用・燃費分析'),
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+            KpiCard('総メンテ費用','¥'+fmt(totalCost),'var(--amber)'),
+            KpiCard('平均燃費',avgKmL+' km/L','var(--amber)'),
+            KpiCard('最高燃費',fChart.length?Math.max.apply(null,fChart.map(function(d){return d.kmL;}))+' km/L':'-','var(--green)'),
+            KpiCard('平均単価',fuel.length?'¥'+(fuel.reduce(function(s,f){return s+f.unit;},0)/fuel.length).toFixed(1)+'/L':'-','var(--cyan)')
+          ),
+          monthlyKm.length > 0 ? h('div',{className:'crd'},
+            h('div',{style:{fontWeight:600,fontSize:14,marginBottom:14,letterSpacing:'-.3px'}},'月別走行距離 ',h('span',{style:{fontSize:11,color:'var(--text3)',fontWeight:400}},'(km)')),
+            h(SvgBar,{data:monthlyKm,xKey:'month',yKey:'km',color:'var(--cyan)',height:150})
+          ) : null,
+          h('div',{className:'crd'},
+            h('div',{style:{fontWeight:600,fontSize:14,marginBottom:14,letterSpacing:'-.3px'}},'月別メンテ費用'),
+            h(SvgBar,{data:monthlyCost,xKey:'month',yKey:'cost',color:'var(--amber)',height:150})
+          ),
+          h('div',{className:'crd'},
+            h('div',{style:{fontWeight:600,fontSize:14,marginBottom:14,letterSpacing:'-.3px'}},'項目別費用内訳'),
+            h('div',{style:{display:'flex',gap:16,alignItems:'center'}},
+              h('div',{style:{flexShrink:0}},
+                h(SvgDonut,{data:catData,colors:PIE,size:130})
+              ),
+              h('div',{style:{flex:1,display:'flex',flexDirection:'column',gap:7}},
+                catData.map(function(c,i){
+                  return h('div',{key:c.name},
+                    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:3}},
+                      h('div',{style:{display:'flex',alignItems:'center',gap:6}},
+                        h('div',{style:{width:8,height:8,borderRadius:2,background:PIE[i%PIE.length],flexShrink:0}}),
+                        h('span',{style:{fontSize:11,color:'#aaa',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:90}},c.name)
+                      ),
+                      h('span',{style:{fontSize:11,fontFamily:'monospace',color:'#ccc',marginLeft:6,flexShrink:0}},'¥'+fmt(c.value))
+                    ),
+                    h('div',{style:{height:3,borderRadius:2,background:'var(--border)',overflow:'hidden'}},
+                      h('div',{style:{height:'100%',borderRadius:2,width:Math.round(c.value/totalCost*100)+'%',background:PIE[i%PIE.length]}})
+                    )
+                  );
+                })
+              )
+            )
+          ),
+          h('div',{className:'crd'},
+            h('div',{style:{fontWeight:600,fontSize:14,marginBottom:14,letterSpacing:'-.3px'}},'項目別費用内訳'),
+            h('div',{style:{display:'flex',gap:16,alignItems:'center'}},
+              h('div',{style:{flexShrink:0}},
+                h(SvgDonut,{data:catData,colors:PIE,size:130})
+              ),
+              h('div',{style:{flex:1,display:'flex',flexDirection:'column',gap:8}},
+                catData.map(function(c,i){
+                  return h('div',{key:c.name},
+                    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
+                      h('div',{style:{display:'flex',alignItems:'center',gap:7}},
+                        h('div',{style:{width:8,height:8,borderRadius:2,background:PIE[i%PIE.length],flexShrink:0}}),
+                        h('span',{style:{fontSize:12,color:'var(--text2)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:100}},c.name)
+                      ),
+                      h('span',{className:'stat-num',style:{fontSize:12,color:'var(--text)',marginLeft:6,flexShrink:0}},'¥'+fmt(c.value))
+                    ),
+                    h('div',{style:{height:3,borderRadius:2,background:'var(--surface3)',overflow:'hidden'}},
+                      h('div',{className:'prog-fill',style:{height:'100%',borderRadius:2,width:Math.round(c.value/totalCost*100)+'%',background:PIE[i%PIE.length]}})
+                    )
+                  );
+                })
+              )
+            )
+          ),
+          h('div',{className:'crd'},
+            h('div',{style:{fontWeight:600,fontSize:14,marginBottom:14,letterSpacing:'-.3px'}},'給油単価推移 ',h('span',{style:{fontSize:11,color:'var(--text3)',fontWeight:400}},'(円/L)')),
+            h(SvgLine,{data:unitTrend,xKey:'date',yKey:'unit',color:'var(--cyan)',height:130})
+          )
+        ) : null
+
+      ),
+
+      // Bottom Nav
+      h('nav',{className:'bottom-nav'},
+        TABS.map(function(t,i){
+          return h('button',{key:t.l,className:'nav-item'+(tab===i?' active':''),onClick:function(){setTab(i);}},
+            h(Ico,{name:t.n,size:20}),
+            h('span',null,t.l));
+        })
+      ),
+
+      // Modal
+      modal ? h('div',{className:'overlay',onClick:function(){setModal(null);}},
+        h('div',{className:'sheet',onClick:function(e){e.stopPropagation();}},
+          h('div',{className:'drag-handle'}),
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:22}},
+            h('div',{style:{fontWeight:700,fontSize:18,letterSpacing:'-.4px'}},
+              modal==='maint'  ? (editId?'メンテ記録を編集':'メンテ記録を追加') :
+              modal==='fuel'   ? (editId?'給油記録を編集':'給油記録を追加') :
+              modal==='remind' ? (editId?'リマインダーを編集':'リマインダーを追加') : '設定'
+            ),
+            h('button',{className:'btn-icon',onClick:function(){setModal(null);},style:assign(S.bI,{color:'var(--text2)'})},h(Ico,{name:'x',size:20}))
+          ),
+
+          // Maint form
+          modal==='maint' ? h('div',{style:{display:'flex',flexDirection:'column',gap:16}},
+            // テンプレートチップ — 常時表示
+            h('div',null,
+              h('label',{style:S.lbl},'よく使うメンテ種類'),
+              h('div',{className:'tmpl-chips'},
+                TMPLS.map(function(t){
+                  return h('button',{
+                    key:t.type,
+                    className:'tmpl-chip'+(mF.type===t.type?' selected':''),
+                    onClick:function(){
+                      setMF(function(p){return assign(p,{
+                        type:t.type,
+                        mileage:p.mileage||String(cur)
+                      });});
+                    }
+                  }, t.type);
+                })
+              ),
+              h('input',{style:S.inp,placeholder:'または直接入力…',value:mF.type,onChange:function(e){setMF(function(p){return assign(p,{type:e.target.value});})}})
+            ),
+            h('div',null,h('label',{style:S.lbl},'日付'),h('input',{type:'date',style:S.inp,value:mF.date,onChange:function(e){setMF(function(p){return assign(p,{date:e.target.value});});}})),
+            h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+              h('div',null,
+                h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
+                  h('label',{style:assign(S.lbl,{marginBottom:0})},'走行距離 (km)'),
+                  !mF.mileage ? h('button',{
+                    onClick:function(){setMF(function(p){return assign(p,{mileage:String(cur)});});},
+                    style:{fontSize:10,color:'var(--amber)',background:'var(--amber-dim)',border:'none',borderRadius:6,padding:'2px 8px',cursor:'pointer',fontWeight:600}
+                  },'現在値') : null
+                ),
+                h('input',{type:'number',style:S.inp,placeholder:String(cur),inputMode:'numeric',value:mF.mileage,onChange:function(e){setMF(function(p){return assign(p,{mileage:e.target.value});})}})
+              ),
+              h('div',null,h('label',{style:S.lbl},'費用 (円)'),h('input',{type:'number',style:S.inp,placeholder:'5000',inputMode:'numeric',value:mF.cost,onChange:function(e){setMF(function(p){return assign(p,{cost:e.target.value});})}}))
+            ),
+            h('div',null,h('label',{style:S.lbl},'メモ (任意)'),h('input',{style:S.inp,placeholder:'使用オイルの種類など',value:mF.note,onChange:function(e){setMF(function(p){return assign(p,{note:e.target.value});})}})),
+            h('div',{style:{display:'flex',gap:10,marginTop:4}},
+              h('button',{className:'btn-ghost',style:S.bG,onClick:function(){setModal(null);}},'キャンセル'),
+              h('button',{className:'btn-primary',style:assign(S.bP,{flex:1,justifyContent:'center'}),onClick:saveMaint,disabled:!mF.date||!mF.type},'保存する')
+            )
+          ) : null,
+
+          // Fuel form
+          modal==='fuel' ? h(FuelForm,{fF:fF,setFF:setFF,onCancel:function(){setModal(null);},onSave:saveFuel2,latestMileage:editId?null:lfm}) : null,
+
+          // Reminder form
+          modal==='remind' ? h('div',{style:{display:'flex',flexDirection:'column',gap:16}},
+            h('div',null,
+              h('label',{style:S.lbl},'よく使うメンテ種類'),
+              h('div',{className:'tmpl-chips'},
+                TMPLS.map(function(t){
+                  return h('button',{
+                    key:t.type,
+                    className:'tmpl-chip'+(rF.type===t.type?' selected':''),
+                    onClick:function(){
+                      setRF(function(p){return assign(p,{
+                        type:t.type,
+                        dueMileage:t.km?String(cur+t.km):p.dueMileage
+                      });});
+                    }
+                  },
+                  t.km
+                    ? h(React.Fragment,null,t.type,h('span',{style:{fontSize:10,opacity:.6,marginLeft:3}},'+'+fmt(t.km)))
+                    : t.type
+                  );
+                })
+              ),
+              h('input',{style:S.inp,placeholder:'または直接入力…',value:rF.type,onChange:function(e){setRF(function(p){return assign(p,{type:e.target.value});});}})
+            ),
+            h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+              h('div',null,h('label',{style:S.lbl},'目標走行距離 (km)'),h('input',{type:'number',style:S.inp,placeholder:'50000',value:rF.dueMileage,onChange:function(e){setRF(function(p){return assign(p,{dueMileage:e.target.value});})}})),
+              h('div',null,h('label',{style:S.lbl},'期限日'),h('input',{type:'date',style:S.inp,value:rF.dueDate,onChange:function(e){setRF(function(p){return assign(p,{dueDate:e.target.value});})}}))
+            ),
+            h('div',{style:{display:'flex',gap:10,marginTop:4}},
+              h('button',{className:'btn-ghost',style:S.bG,onClick:function(){setModal(null);}},'キャンセル'),
+              h('button',{className:'btn-primary',style:assign(S.bP,{flex:1,justifyContent:'center'}),onClick:saveRemind,disabled:!rF.type},'保存する')
+            )
+          ) : null,
+
+          // Settings
+          modal==='settings' ? h('div',{style:{display:'flex',flexDirection:'column',gap:0}},
+            h('div',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.7px',marginBottom:14}},'車両情報'),
+            h('div',{style:{display:'flex',flexDirection:'column',gap:12,marginBottom:24}},
+              h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+                h('div',null,h('label',{style:S.lbl},'車名'),h('input',{style:S.inp,placeholder:'Mazda3 XD',value:vF.name,onChange:function(e){setVF(function(p){return assign(p,{name:e.target.value});})}})),
+                h('div',null,h('label',{style:S.lbl},'年式'),h('input',{style:S.inp,placeholder:'2019',value:vF.year,onChange:function(e){setVF(function(p){return assign(p,{year:e.target.value});})}}))
+              ),
+              h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+                h('div',null,h('label',{style:S.lbl},'走行距離 (km)'),h('input',{type:'number',style:S.inp,inputMode:'numeric',value:vF.mileage,onChange:function(e){setVF(function(p){return assign(p,{mileage:+e.target.value});})}})),
+                h('div',null,h('label',{style:S.lbl},'燃料種別'),
+                  h('select',{style:assign(S.inp,{cursor:'pointer'}),value:vF.fuelType,onChange:function(e){setVF(function(p){return assign(p,{fuelType:e.target.value});});}},
+                    ['レギュラー','ハイオク','軽油','電気'].map(function(f){return h('option',{key:f,value:f},f);})
+                  )
+                )
+              ),
+              h('button',{className:'btn-primary',style:assign(S.bP,{justifyContent:'center'}),onClick:saveVehicle},'車両情報を保存')
+            ),
+            h('div',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.7px',marginBottom:14}},'データ管理'),
+            h('div',{style:{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:16,overflow:'hidden'}},
+              h('div',{className:'srow'},
+                h('div',null,
+                  h('div',{style:{fontSize:13,fontWeight:600,letterSpacing:'-.2px'}},'JSONエクスポート'),
+                  h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:3}},'全データをバックアップ')),
+                h('button',{onClick:doExport,style:assign(S.bG,{display:'flex',alignItems:'center',gap:6,fontSize:12,padding:'8px 14px'})},h(Ico,{name:'download',size:13}),'エクスポート')
+              ),
+              h('div',{className:'srow'},
+                h('div',null,
+                  h('div',{style:{fontSize:13,fontWeight:600,letterSpacing:'-.2px'}},'JSONインポート'),
+                  h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:3}},'バックアップから復元')),
+                h('button',{onClick:function(){iref.current&&iref.current.click();},style:assign(S.bG,{display:'flex',alignItems:'center',gap:6,fontSize:12,padding:'8px 14px'})},h(Ico,{name:'upload',size:13}),'インポート')
+              )
+            ),
+            h('input',{ref:iref,type:'file',accept:'.json',style:{display:'none'},onChange:doImport}),
+            impErr ? h('div',{style:{fontSize:12,color:'#fb7185',background:'rgba(244,63,94,.06)',border:'1px solid rgba(244,63,94,.15)',borderRadius:10,padding:'10px 14px',marginTop:10}},impErr) : null,
+            h('div',{style:{marginTop:20,padding:'12px 0',borderTop:'1px solid var(--border2)',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              h('div',{className:'stat-num',style:{fontSize:11,color:'var(--text3)'}},'CarLog v5 · PWA'),
+              h('div',{className:'stat-num',style:{fontSize:11,color:'var(--text3)'}},'メンテ '+maint.length+'件 · 給油 '+fuel.length+'件')
+            )
+          ) : null
+        )
+      ) : null
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+
+})();
+</script>
+
+<script>
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(){ console.log('SW ok'); })
+      .catch(function(e){ console.warn('SW:', e); });
+  });
+}
+</script>
+</body>
+</html>
