@@ -13,152 +13,246 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --amber:#f59e0b;--amber-dim:rgba(245,158,11,.12);--amber-glow:rgba(245,158,11,.25);
-      --surface:#111113;--surface2:#1a1a1c;--surface3:#222224;
-      --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.04);
-      --text:#f4f4f5;--text2:#a1a1aa;--text3:#52525b;
+      --amber:#f59e0b;--amber-dim:rgba(245,158,11,.1);--amber-glow:rgba(245,158,11,.22);
+      --surface:#0e0e10;--surface2:#18181b;--surface3:#27272a;
+      --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.03);
+      --text:#fafafa;--text2:#a1a1aa;--text3:#52525b;
       --red:#f43f5e;--green:#22c55e;--cyan:#22d3ee;
+      --sidebar-w:224px;
     }
-    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    html{font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
     body{background:#000;color:var(--text);font-family:'Inter','Noto Sans JP',system-ui,sans-serif}
     #root{min-height:100vh}
     .spin{width:36px;height:36px;border:2.5px solid var(--surface3);border-top-color:var(--amber);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 14px}
     @keyframes sp{to{transform:rotate(360deg)}}
     #loading{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column}
-    ::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
 
-    /* Cards */
-    .crd{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:18px}
-    .crd-sm{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px}
+    /* App shell */
+    .app-shell{min-height:100vh;background:#000;color:var(--text);font-family:'Inter','Noto Sans JP',system-ui,sans-serif}
+    .main-content{padding-bottom:76px}
 
-    /* Rows */
-    .row{border-bottom:1px solid var(--border2)}
-    .row:last-child{border-bottom:none}
+    /* Sidebar (desktop only) */
+    .sidebar{display:none}
+    @media(min-width:768px){
+      .sidebar{
+        display:flex;flex-direction:column;
+        position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);
+        background:rgba(7,7,9,.98);
+        border-right:1px solid var(--border);
+        z-index:90;padding:22px 14px 28px;
+      }
+      .main-content{margin-left:var(--sidebar-w);padding-bottom:28px}
+      .bottom-nav{display:none!important}
+      .header-logo{display:none!important}
+      .header-mileage{display:none!important}
+    }
+    .sidebar-logo{display:flex;align-items:center;gap:11px;padding:2px 10px 20px;margin-bottom:6px;border-bottom:1px solid var(--border)}
+    .sidebar-logo-icon{width:36px;height:36px;background:var(--amber);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px rgba(245,158,11,.3)}
+    .sidebar-logo-text{font-weight:700;font-size:15px;letter-spacing:-.4px}
+    .sidebar-logo-sub{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;margin-top:14px;flex:1}
+    .sidebar-item{
+      display:flex;align-items:center;gap:12px;
+      padding:11px 14px;border-radius:12px;
+      cursor:pointer;border:none;background:none;
+      color:var(--text3);font-size:13px;font-weight:500;
+      transition:background .15s,color .15s;width:100%;text-align:left;letter-spacing:-.1px
+    }
+    .sidebar-item.active{background:rgba(245,158,11,.09);color:var(--amber);font-weight:600}
+    .sidebar-item:hover:not(.active){background:rgba(255,255,255,.04);color:var(--text2)}
+    .sidebar-item svg{flex-shrink:0}
+    .sidebar-footer{padding:18px 10px 0;border-top:1px solid var(--border);margin-top:auto}
+    .sidebar-footer-stat{font-size:10px;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px}
+    .sidebar-footer-val{font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:var(--amber);letter-spacing:-1.5px;line-height:1}
+    .sidebar-footer-sub{font-size:10px;color:var(--text3);margin-top:4px}
 
-    /* Nav */
+    /* Bottom nav (mobile) */
     .bottom-nav{
       position:fixed;bottom:0;left:0;right:0;
+      background:rgba(0,0,0,.92);
+      backdrop-filter:blur(28px) saturate(2);
+      -webkit-backdrop-filter:blur(28px) saturate(2);
+      border-top:1px solid var(--border);
+      z-index:90;display:flex;justify-content:space-around;
+      padding:6px 0 max(8px,env(safe-area-inset-bottom))
+    }
+    .nav-item{
+      display:flex;flex-direction:column;align-items:center;gap:3px;
+      padding:5px 8px;cursor:pointer;border:none;background:none;
+      color:var(--text3);font-size:9px;font-weight:500;letter-spacing:.3px;
+      transition:color .2s;flex:1;min-width:0
+    }
+    .nav-item.active{color:var(--amber)}
+    .nav-item svg{transition:transform .18s}
+    .nav-item.active svg{transform:scale(1.12)}
+    .nav-item.active::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--amber);margin:-1px auto 0}
+
+    /* App header */
+    .app-header{
       background:rgba(0,0,0,.88);
       backdrop-filter:blur(24px) saturate(1.8);
       -webkit-backdrop-filter:blur(24px) saturate(1.8);
-      border-top:1px solid var(--border);
-      z-index:90;display:flex;justify-content:space-around;
-      padding:8px 0 max(10px,env(safe-area-inset-bottom))
+      border-bottom:1px solid var(--border);
+      padding:0 18px;position:sticky;top:0;z-index:80
     }
-    .nav-item{
-      display:flex;flex-direction:column;align-items:center;gap:4px;
-      padding:6px 12px;cursor:pointer;border:none;background:none;
-      color:var(--text3);font-size:9.5px;font-weight:500;letter-spacing:.3px;
-      transition:color .2s;min-width:52px
-    }
-    .nav-item.active{color:var(--amber)}
-    .nav-item svg{transition:transform .2s}
-    .nav-item.active svg{transform:scale(1.1)}
+    @media(min-width:768px){.app-header{padding:0 28px}}
+
+    /* Cards */
+    .crd{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:18px}
+    @media(min-width:768px){.crd{padding:22px;border-radius:22px}}
+    .crd-sm{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px}
+    .row{border-bottom:1px solid var(--border2)}
+    .row:last-child{border-bottom:none}
 
     /* Hero */
     .hero{
-      background:linear-gradient(135deg,#1c1300 0%,#0d0900 55%,#111113 100%);
-      border:1px solid rgba(245,158,11,.18);
-      border-radius:24px;padding:22px;position:relative;overflow:hidden
+      background:linear-gradient(145deg,#150d00 0%,#0b0700 55%,#111113 100%);
+      border:1px solid rgba(245,158,11,.15);
+      border-radius:24px;padding:24px;position:relative;overflow:hidden
+    }
+    .hero::before{
+      content:'';position:absolute;top:-70px;right:-70px;
+      width:280px;height:280px;
+      background:radial-gradient(circle,rgba(245,158,11,.16) 0%,transparent 65%);
+      pointer-events:none
     }
     .hero::after{
-      content:'';position:absolute;top:-60px;right:-60px;
-      width:220px;height:220px;
-      background:radial-gradient(circle,rgba(245,158,11,.12) 0%,transparent 65%);
+      content:'';position:absolute;bottom:-50px;left:-30px;
+      width:180px;height:180px;
+      background:radial-gradient(circle,rgba(245,158,11,.06) 0%,transparent 65%);
       pointer-events:none
     }
 
     /* Sheet / Modal */
     .overlay{
-      position:fixed;inset:0;background:rgba(0,0,0,.8);
-      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      position:fixed;inset:0;background:rgba(0,0,0,.82);
+      backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
       z-index:100;display:flex;align-items:flex-end;justify-content:center;
-      animation:ov-in .2s ease
+      animation:ov-in .18s ease
     }
     @media(min-width:600px){.overlay{align-items:center}}
     @keyframes ov-in{from{opacity:0}to{opacity:1}}
     .sheet{
       background:var(--surface2);border:1px solid var(--border);
       border-radius:28px 28px 0 0;
-      padding:12px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+      padding:10px 20px 36px;width:100%;max-width:540px;max-height:93vh;overflow-y:auto;
       animation:sheet-spring .34s cubic-bezier(.34,1.4,.64,1)
     }
-    @media(min-width:600px){.sheet{border-radius:24px;padding:28px}}
-    @keyframes sheet-in{from{transform:translateY(100%);opacity:.5}to{transform:translateY(0);opacity:1}}
-    .drag-handle{width:36px;height:4px;background:var(--surface3);border-radius:2px;margin:8px auto 20px}
+    @media(min-width:600px){.sheet{border-radius:22px;padding:28px}}
+    @keyframes sheet-spring{from{transform:translateY(110%)}to{transform:translateY(0)}}
+    .drag-handle{width:40px;height:4px;background:var(--surface3);border-radius:2px;margin:8px auto 20px}
 
     /* Buttons */
     .btn-primary{
-      background:var(--amber);color:#000;border:none;border-radius:14px;
-      padding:13px 22px;font-weight:700;cursor:pointer;font-size:14px;
+      background:var(--amber);color:#000;border:none;border-radius:12px;
+      padding:12px 20px;font-weight:700;cursor:pointer;font-size:14px;
       display:flex;align-items:center;gap:7px;
-      transition:transform .15s,box-shadow .15s;
-      box-shadow:0 4px 16px rgba(245,158,11,.28)
+      transition:transform .12s,box-shadow .12s;
+      box-shadow:0 3px 14px rgba(245,158,11,.3)
     }
-    .btn-primary:active{transform:scale(.97)}
+    .btn-primary:active{transform:scale(.96)}
     .btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
     .btn-ghost{
       background:transparent;border:1px solid var(--border);color:var(--text2);
-      border-radius:12px;padding:10px 16px;cursor:pointer;font-size:13px;
+      border-radius:10px;padding:10px 16px;cursor:pointer;font-size:13px;
       transition:background .15s,border-color .15s
     }
+    .btn-ghost:hover{background:rgba(255,255,255,.04)}
     .btn-ghost:active{background:var(--surface3)}
     .btn-icon{
       background:none;border:none;cursor:pointer;
-      padding:6px;color:var(--text3);border-radius:10px;
+      padding:7px;color:var(--text3);border-radius:10px;
       transition:background .12s,color .12s;display:flex;align-items:center;justify-content:center
     }
+    .btn-icon:hover{background:rgba(255,255,255,.05);color:var(--text2)}
     .btn-icon:active{background:var(--surface3);color:var(--text)}
 
-    /* Quick action buttons on home */
+    /* Quick action buttons */
     .quick-btn{
       background:var(--surface2);border:1px solid var(--border);
-      border-radius:18px;padding:16px 14px;cursor:pointer;
-      display:flex;flex-direction:column;align-items:center;gap:8px;
-      transition:background .15s,border-color .15s,transform .15s;
+      border-radius:18px;padding:18px 14px;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;gap:9px;
+      transition:background .15s,border-color .15s,transform .12s;
       color:var(--text);font-size:12px;font-weight:600
     }
-    .quick-btn:active{transform:scale(.97);background:var(--surface3)}
-    .quick-btn.amber{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)}
+    .quick-btn:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.09)}
+    .quick-btn:active{transform:scale(.96);background:var(--surface3)}
+    .quick-btn.amber{border-color:rgba(245,158,11,.22);background:rgba(245,158,11,.05)}
+    .quick-btn.amber:hover{background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.28)}
 
     /* Section title */
     .stitle{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
 
-    /* Template chips — always visible grid */
-    .tmpl-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+    /* Template chips */
+    .tmpl-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
     .tmpl-chip{
-      padding:7px 13px;border-radius:20px;font-size:12px;font-weight:500;
+      padding:6px 13px;border-radius:20px;font-size:12px;font-weight:500;
       background:var(--surface);border:1px solid var(--border);
       color:var(--text2);cursor:pointer;
-      transition:background .12s,border-color .12s,color .12s,transform .1s;
-      white-space:nowrap
+      transition:background .12s,border-color .12s,color .12s,transform .1s;white-space:nowrap
     }
     .tmpl-chip:active{transform:scale(.94)}
     .tmpl-chip.selected{background:var(--amber-dim);border-color:var(--amber-glow);color:var(--amber);font-weight:600}
 
-    /* Tab slide animation */
+    /* Animations */
     .tab-pane{animation:tab-in .2s cubic-bezier(.4,0,.2,1) both}
-    @keyframes tab-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-
-    /* Sheet spring animation */
-    @keyframes sheet-spring{from{transform:translateY(110%)}to{transform:translateY(0)}}
-
-    /* Step dots for multi-step form */
-    .step-dot{width:6px;height:6px;border-radius:50%;background:var(--surface3);transition:background .2s,transform .2s}
-    .step-dot.active{background:var(--amber);transform:scale(1.3)}
-
-    /* Pulse for urgent items */
-    @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,.25)}50%{box-shadow:0 0 0 5px rgba(244,63,94,.06)}}
+    @keyframes tab-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,.2)}50%{box-shadow:0 0 0 6px rgba(244,63,94,.05)}}
     .urgent-pulse{animation:pulse-border 2.5s ease infinite}
+    @keyframes card-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .card-enter{animation:card-in .3s cubic-bezier(.4,0,.2,1) both}
+    @keyframes sheet-in{from{transform:translateY(100%);opacity:.5}to{transform:translateY(0);opacity:1}}
 
     /* Empty state */
     .empty-state{text-align:center;padding:44px 20px}
 
-    /* Nav active dot */
-    .nav-item.active::after{
-      content:'';display:block;width:4px;height:4px;border-radius:50%;
-      background:var(--amber);margin:-2px auto 0;
+    /* Increment chips */
+    .inc-chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+    .inc-chip{
+      padding:5px 11px;border-radius:12px;font-size:12px;font-weight:600;
+      background:var(--surface);border:1px solid var(--border);color:var(--text2);
+      cursor:pointer;transition:background .1s,transform .1s,color .1s;font-family:'DM Mono',monospace
     }
+    .inc-chip:active{transform:scale(.93);background:var(--surface3)}
+    .inc-chip.neg{color:var(--red)}
+    .inc-chip.pos{color:var(--green)}
+
+    /* Search bar */
+    .search-wrap{position:relative;margin-bottom:4px}
+    .search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)}
+    .search-inp{
+      width:100%;background:var(--surface);border:1px solid var(--border);
+      border-radius:12px;padding:10px 12px 10px 36px;color:var(--text);font-size:14px;
+      outline:none;transition:border-color .15s;font-family:'Inter','Noto Sans JP',system-ui
+    }
+    .search-inp:focus{border-color:rgba(245,158,11,.4)}
+    .search-inp::placeholder{color:var(--text3)}
+
+    /* Next maint row */
+    .next-maint-row{
+      display:flex;align-items:center;gap:10px;
+      border-bottom:1px solid var(--border2);
+      transition:background .12s;border-radius:10px;
+      margin:0 -6px;padding:10px 6px
+    }
+    .next-maint-row:hover{background:rgba(255,255,255,.02)}
+    .next-maint-row:last-child{border-bottom:none}
+
+    /* Toast */
+    .toast{
+      position:fixed;bottom:84px;left:50%;transform:translateX(-50%);
+      background:rgba(24,24,27,.97);border:1px solid var(--border);
+      border-radius:12px;padding:10px 20px;font-size:13px;font-weight:500;
+      z-index:300;white-space:nowrap;
+      animation:toast-in .22s cubic-bezier(.34,1.56,.64,1);
+      box-shadow:0 8px 32px rgba(0,0,0,.6);
+      display:flex;align-items:center;gap:8px
+    }
+    @media(min-width:768px){.toast{bottom:24px}}
+    @keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+    .toast.success{border-color:rgba(34,197,94,.3);background:rgba(10,22,12,.97)}
+    .toast.error{border-color:rgba(244,63,94,.3);background:rgba(22,8,8,.97)}
 
     /* Form inputs */
     .finp{
@@ -169,8 +263,7 @@
     }
     .finp:focus{border-color:rgba(245,158,11,.5)}
     .flbl{display:block;font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.2px}
-
-    input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
+    input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35)}
     select{-webkit-appearance:none;appearance:none}
 
     /* Banner */
@@ -184,23 +277,23 @@
     .srow{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border2)}
     .srow:last-child{border-bottom:none}
 
-    /* Card entrance animation */
-    @keyframes card-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    .card-enter{animation:card-in .3s cubic-bezier(.4,0,.2,1) both}
-
-    /* Progress bar glow */
-    .prog-fill{transition:width .6s cubic-bezier(.4,0,.2,1)}
+    /* Progress bar */
+    .prog-fill{transition:width .65s cubic-bezier(.4,0,.2,1)}
 
     /* Stat number */
     .stat-num{font-family:'DM Mono','Courier New',monospace}
 
     /* KPI cards */
     .kpi{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 16px}
-    .kpi-accent{background:linear-gradient(135deg,#1c1300,#0d0900);border:1px solid rgba(245,158,11,.2)}
+    .kpi-accent{background:linear-gradient(140deg,#150d00,#0b0700);border:1px solid rgba(245,158,11,.18)}
 
-    /* Fuel card bottom grid */
+    /* Fuel card grid */
     .fuel-grid-item{border-left:1px solid var(--border2);padding-left:12px}
     .fuel-grid-item:first-child{border-left:none;padding-left:0}
+
+    /* Step dots */
+    .step-dot{width:6px;height:6px;border-radius:50%;background:var(--surface3);transition:background .2s,transform .2s}
+    .step-dot.active{background:var(--amber);transform:scale(1.3)}
   </style>
 </head>
 <body>
@@ -320,16 +413,29 @@ var idb = {
     var dots = data.map(function(d,i){
       return h('circle',{key:i,cx:px(i),cy:py(+d[props.yKey]),r:3,fill:props.color||'#f59e0b'});
     });
+    // 最高値・最低値の強調ラベル
+    var maxVal=Math.max.apply(null,vals), minVal=Math.min.apply(null,vals);
+    var maxIdx=vals.indexOf(maxVal), minIdx=vals.indexOf(minVal);
+    var valueDots = data.map(function(d,i){
+      var isMax=(+d[props.yKey]===maxVal), isMin=(+d[props.yKey]===minVal);
+      if(!isMax&&!isMin) return null;
+      var cx2=px(i), cy2=py(+d[props.yKey]);
+      var col=isMax?'#4ade80':'#f87171';
+      var labelY = isMax ? cy2-8 : cy2+14;
+      return h(React.Fragment,{key:i},
+        h('circle',{cx:cx2,cy:cy2,r:4,fill:col,stroke:'none'}),
+        h('text',{x:cx2,y:labelY,fill:col,fontSize:8,textAnchor:'middle',fontWeight:'bold'},(+d[props.yKey]).toFixed(1))
+      );
+    });
     return h('div',{style:{position:'relative',width:'100%',height:H}},
       h('svg',{viewBox:'0 0 '+W+' '+H,preserveAspectRatio:'none',style:{width:'100%',height:'100%'}},
-        // grid lines
         h('line',{x1:pl,y1:pt,x2:pl,y2:pt+ih,stroke:'#1e1e1e',strokeWidth:1}),
         h('line',{x1:pl,y1:pt+ih,x2:pl+iw,y2:pt+ih,stroke:'#1e1e1e',strokeWidth:1}),
         [0.25,0.5,0.75,1].map(function(f,i){
           return h('line',{key:i,x1:pl,y1:pt+ih*f,x2:pl+iw,y2:pt+ih*f,stroke:'#1a1a1a',strokeWidth:1,strokeDasharray:'3 3'});
         }),
         h('polyline',{points:pts,fill:'none',stroke:props.color||'#f59e0b',strokeWidth:2.5,strokeLinejoin:'round',strokeLinecap:'round'}),
-        dots, xLabels, yLabels
+        dots, valueDots, xLabels, yLabels
       )
     );
   }
@@ -344,10 +450,13 @@ var idb = {
     var mx = Math.max.apply(null,vals) || 1;
     var bw = iw/data.length*0.6, gap = iw/data.length;
     var bars = data.map(function(d,i){
-      var bh = (+d[props.yKey]/mx)*ih;
-      var bx = pl + gap*i + (gap-bw)/2;
-      var by = pt + ih - bh;
-      return h('rect',{key:i,x:bx,y:by,width:bw,height:bh,fill:props.color||'#f59e0b',rx:3});
+      var v=+d[props.yKey], bh=(v/mx)*ih;
+      var bx=pl+gap*i+(gap-bw)/2, by=pt+ih-bh;
+      var label = v>=10000?'¥'+(v/1000).toFixed(0)+'k' : v>=1000?(v/1000).toFixed(1)+'k' : String(Math.round(v));
+      return h(React.Fragment,{key:i},
+        h('rect',{x:bx,y:by,width:bw,height:Math.max(bh,1),fill:props.color||'#f59e0b',rx:3}),
+        bh>12 ? h('text',{x:bx+bw/2,y:by-3,fill:'#a1a1aa',fontSize:8,textAnchor:'middle'},label) : null
+      );
     });
     var xLabels = data.map(function(d,i){
       return h('text',{key:i,x:pl+gap*i+gap/2,y:H-5,fill:'var(--text3)',fontSize:9,textAnchor:'middle'},d[props.xKey]);
@@ -432,14 +541,7 @@ var idb = {
     a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
     a.download = name; a.click();
   }
-  function assign() {
-    var r = {};
-    for (var i=0; i<arguments.length; i++) {
-      var o = arguments[i];
-      if (o) for (var k in o) r[k] = o[k];
-    }
-    return r;
-  }
+  var assign = Object.assign;
 
   // ── Styles ─────────────────────────────────────────────────────────────────
   var S = {
@@ -473,6 +575,7 @@ var idb = {
     save:    'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',
     upload:  'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',
     download:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
+    search:  'M21 21l-4.35-4.35M17 11a6 6 0 1 1-12 0 6 6 0 0 1 12 0z',
     cog:     'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'
   };
   function Ico(props) {
@@ -503,12 +606,14 @@ var idb = {
     var lo = (ph==='edit-peek'||ph==='del-peek') ? 1 : 0;
     function rst() { setOff(0); setPh('idle'); }
 
-    function oTS(e) { sxRef.current=e.touches[0].clientX; dragRef.current=false; }
+    function getX(e){ return e.touches ? e.touches[0].clientX : e.clientX; }
+    function oTS(e) { sxRef.current=getX(e); dragRef.current=false; }
     function oTM(e) {
       if(sxRef.current===null) return;
-      var dx=e.touches[0].clientX-sxRef.current;
+      var dx=getX(e)-sxRef.current;
       if(Math.abs(dx)<4) return;
-      dragRef.current=true; e.preventDefault();
+      dragRef.current=true;
+      if(e.cancelable) e.preventDefault();
       var c=Math.max(-EXEC,Math.min(EXEC,dx)); setOff(c);
       if(c>PEEK)      setPh(c>=EXEC?'edit-go':'edit-peek');
       else if(c<-PEEK) setPh(c<=-EXEC?'del-go':'del-peek');
@@ -534,6 +639,7 @@ var idb = {
         ),
         h('div', {
           onTouchStart:oTS, onTouchMove:oTM, onTouchEnd:oTE,
+          onMouseDown:oTS, onMouseMove:oTM, onMouseUp:oTE, onMouseLeave:oTE,
           style:{transform:'translateX('+off+'px)',
                  transition:dragRef.current?'none':'transform .3s cubic-bezier(.4,0,.2,1)',
                  position:'relative',willChange:'transform'}
@@ -562,54 +668,90 @@ var idb = {
   // ── FuelForm ───────────────────────────────────────────────────────────────
   function FuelForm(props) {
     var fF=props.fF, setFF=props.setFF;
-    useEffect(function(){ if(!fF.date) setFF(function(p){return assign(p,{date:new Date().toISOString().slice(0,10)});}); },[]);
+    var litersRef=useRef(null), priceRef=useRef(null), unitRef=useRef(null);
+
+    useEffect(function(){
+      if(!fF.date) setFF(function(p){return Object.assign({},p,{date:new Date().toISOString().slice(0,10)});});
+    },[]);
     useEffect(function(){
       var l=parseFloat(fF.liters), pr=parseFloat(fF.price);
-      if(l>0&&pr>0) setFF(function(v){return assign(v,{unit:(pr/l).toFixed(1)});});
+      if(l>0&&pr>0) setFF(function(v){return Object.assign({},v,{unit:(pr/l).toFixed(1)});});
     },[fF.liters,fF.price]);
-    var au = parseFloat(fF.liters)>0 && parseFloat(fF.price)>0;
-    var sg = props.latestMileage ? props.latestMileage+600 : null;
-    var ok = fF.date && fF.mileage && fF.liters && fF.price;
-    var uStyle = au ? assign(S.inp,{color:'var(--amber)',background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)'}) : S.inp;
+
+    var au  = parseFloat(fF.liters)>0 && parseFloat(fF.price)>0;
+    var sg  = props.latestMileage ? props.latestMileage+600 : null;
+    var ok  = fF.date && fF.mileage && fF.liters && fF.price;
+    var uSt = au ? Object.assign({},S.inp,{color:'var(--amber)',background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)'}) : S.inp;
+
+    function setM(v){ setFF(function(p){return Object.assign({},p,{mileage:v});}); }
+    function nextFocus(ref){ if(ref&&ref.current) setTimeout(function(){ref.current.focus();},50); }
 
     return h('div',{style:{display:'flex',flexDirection:'column',gap:16}},
+      // 日付
       h('div',null,
         h('label',{style:S.lbl},'日付'),
-        h('input',{type:'date',style:S.inp,value:fF.date,onChange:function(e){setFF(function(p){return assign(p,{date:e.target.value});})}})
+        h('input',{type:'date',style:S.inp,value:fF.date,
+          onChange:function(e){setFF(function(p){return Object.assign({},p,{date:e.target.value});});}})
       ),
+      // 走行距離
       h('div',null,
         h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
-          h('label',{style:assign(S.lbl,{marginBottom:0})},'走行距離 (km)'),
+          h('label',{style:Object.assign({},S.lbl,{marginBottom:0})},'走行距離 (km)'),
           sg&&!fF.mileage ? h('button',{
-            onClick:function(){setFF(function(p){return assign(p,{mileage:String(sg)});});},
+            onClick:function(){setM(String(sg)); nextFocus(litersRef);},
             style:{fontSize:11,color:'var(--amber)',background:'var(--amber-dim)',border:'1px solid var(--amber-glow)',borderRadius:8,padding:'3px 10px',cursor:'pointer',fontWeight:600}
           },'↑ '+fmt(sg)) : null
         ),
         props.latestMileage ? h('div',{style:{fontSize:11,color:'var(--text3)',marginBottom:7,fontFamily:"'DM Mono',monospace"}},'前回 '+fmt(props.latestMileage)+' km') : null,
-        h('input',{type:'number',style:S.inp,placeholder:sg?String(sg):'46200',inputMode:'numeric',value:fF.mileage,onChange:function(e){setFF(function(p){return assign(p,{mileage:e.target.value});})}})
+        h('input',{type:'number',style:S.inp,placeholder:sg?String(sg):'46200',inputMode:'numeric',
+          value:fF.mileage,autoFocus:true,
+          onChange:function(e){setM(e.target.value);},
+          onBlur:function(){if(fF.mileage) nextFocus(litersRef);}
+        })
       ),
+      // インクリメントチップ
+      fF.mileage ? h('div',{className:'inc-chips'},
+        [-500,-100,100,500,1000].map(function(d){
+          return h('button',{key:d,className:'inc-chip '+(d<0?'neg':'pos'),
+            onClick:function(){setM(String(Math.max(0,(+fF.mileage||0)+d)));}
+          },(d>0?'+':'')+d.toLocaleString());
+        })
+      ) : null,
+      // 給油量 + 合計金額
       h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
         h('div',null,
           h('label',{style:S.lbl},'給油量 (L)'),
-          h('input',{type:'number',style:S.inp,placeholder:'32.00',inputMode:'decimal',value:fF.liters,onChange:function(e){setFF(function(p){return assign(p,{liters:e.target.value});});}})
+          h('input',{ref:litersRef,type:'number',style:S.inp,placeholder:'32.00',inputMode:'decimal',
+            value:fF.liters,
+            onChange:function(e){setFF(function(p){return Object.assign({},p,{liters:e.target.value});});},
+            onBlur:function(){if(fF.liters) nextFocus(priceRef);}
+          })
         ),
         h('div',null,
           h('label',{style:S.lbl},'合計金額 (円)'),
-          h('input',{type:'number',style:S.inp,placeholder:'4000',inputMode:'numeric',value:fF.price,onChange:function(e){setFF(function(p){return assign(p,{price:e.target.value});});}})
+          h('input',{ref:priceRef,type:'number',style:S.inp,placeholder:'4000',inputMode:'numeric',
+            value:fF.price,
+            onChange:function(e){setFF(function(p){return Object.assign({},p,{price:e.target.value});});},
+            onBlur:function(){if(fF.price&&!au) nextFocus(unitRef);}
+          })
         )
       ),
+      // 単価（自動計算）
       h('div',null,
-        h('label',{style:assign(S.lbl,{display:'flex',alignItems:'center',gap:7})},
+        h('label',{style:Object.assign({},S.lbl,{display:'flex',alignItems:'center',gap:7})},
           '単価 (円/L)',
           au ? h('span',{style:{fontSize:10,color:'var(--amber)',background:'var(--amber-dim)',border:'1px solid var(--amber-glow)',borderRadius:5,padding:'1px 7px',fontWeight:600}},'自動計算') : null
         ),
-        h('input',{type:'number',style:uStyle,placeholder:'給油量と金額から自動計算',inputMode:'decimal',value:fF.unit,onChange:function(e){setFF(function(p){return assign(p,{unit:e.target.value});})}})
+        h('input',{ref:unitRef,type:'number',style:uSt,placeholder:'給油量と金額から自動計算',inputMode:'decimal',
+          value:fF.unit,
+          onChange:function(e){setFF(function(p){return Object.assign({},p,{unit:e.target.value});});}
+        })
       ),
       !ok ? h('div',{style:{fontSize:11,color:'var(--text3)',display:'flex',alignItems:'center',gap:5}},
         h('span',{style:{color:'var(--red)'}},'●'),' 日付・走行距離・給油量・金額は必須です') : null,
       h('div',{style:{display:'flex',gap:10,marginTop:4}},
         h('button',{className:'btn-ghost',style:S.bG,onClick:props.onCancel},'キャンセル'),
-        h('button',{className:'btn-primary',style:assign(S.bP,{flex:1,justifyContent:'center'}),onClick:props.onSave,disabled:!ok},'保存する')
+        h('button',{className:'btn-primary',style:Object.assign({},S.bP,{flex:1,justifyContent:'center'}),onClick:props.onSave,disabled:!ok},'保存する')
       )
     );
   }
@@ -626,12 +768,23 @@ var idb = {
     var tp = useState(false); var tmpl=tp[0],setTmpl=tp[1];
     var ss = useState('idle'); var saveSt=ss[0],setSaveSt=ss[1];
     var ie = useState(''); var impErr=ie[0],setImpErr=ie[1];
+    var nss=useState({enabled:false,timing:1000,timingDay:30}); var notifSetting=nss[0],setNotifSetting=nss[1];
+    var nps=useState('default'); var notifPerm=nps[0],setNotifPerm=nps[1];
     var loaded=useRef(false), iref=useRef();
 
     var eM={date:'',type:'',mileage:'',cost:'',note:''};
     var eF={date:'',mileage:'',liters:'',price:'',unit:''};
     var eR={type:'',dueMileage:'',dueDate:''};
     var mfs=useState(eM); var mF=mfs[0],setMF=mfs[1];
+    var mss=useState(''); var maintSearch=mss[0],setMaintSearch=mss[1];
+    var tst=useState(null); var toast=tst[0],setToast=tst[1];
+    var toastTimer=useRef(null);
+    function showToast(msg,type){
+      clearTimeout(toastTimer.current);
+      setToast({msg:msg,type:type||'success'});
+      toastTimer.current=setTimeout(function(){setToast(null);},2500);
+    }
+    var fss=useState(''); var fuelSearch=fss[0],setFuelSearch=fss[1];
     var ffs=useState(eF); var fF=ffs[0],setFF=ffs[1];
     var rfs=useState(eR); var rF=rfs[0],setRF=rfs[1];
     var vfs=useState(IV); var vF=vfs[0],setVF=vfs[1];
@@ -639,14 +792,39 @@ var idb = {
     // Storage load
     useEffect(function(){
       idb.get(SK).then(function(r){
+        var lV=IV,lM=IM,lF=IFU,lR=IR,lN={enabled:false,timing:1000,timingDay:30};
         if(r && r.value) {
           try {
             var d=JSON.parse(r.value);
-            if(d.vehicle) setVehicle(d.vehicle);
-            if(d.maint && d.maint.length)  setMaint(d.maint);
-            if(d.fuel  && d.fuel.length)   setFuel(d.fuel);
-            if(d.remind && d.remind.length) setRemind(d.remind);
+            if(d.vehicle){setVehicle(d.vehicle);lV=d.vehicle;}
+            if(d.maint && d.maint.length){setMaint(d.maint);lM=d.maint;}
+            if(d.fuel  && d.fuel.length){setFuel(d.fuel);lF=d.fuel;}
+            if(d.remind && d.remind.length){setRemind(d.remind);lR=d.remind;}
+            if(d.notif){setNotifSetting(d.notif);lN=d.notif;}
           } catch(e) { console.warn('parse error',e); }
+        }
+        // 起動時通知チェック（1日1回）
+        if(lN.enabled && 'Notification' in window && Notification.permission==='granted') {
+          var today=new Date().toISOString().slice(0,10);
+          if(localStorage.getItem('carlog-notif-checked')!==today) {
+            localStorage.setItem('carlog-notif-checked',today);
+            var allM=[lV.mileage];
+            lM.forEach(function(m){if(m.mileage)allM.push(m.mileage);});
+            lF.forEach(function(f){if(f.mileage)allM.push(f.mileage);});
+            var lCur=Math.max.apply(null,allM);
+            var thr=lN.timing||1000, thrD=lN.timingDay||30;
+            lR.filter(function(r){
+              if(r.done)return false;
+              if(r.dueMileage&&lCur>=r.dueMileage-thr)return true;
+              if(r.dueDate&&(new Date(r.dueDate)-new Date())/86400000<=thrD)return true;
+              return false;
+            }).forEach(function(r){
+              var body='';
+              if(r.dueMileage)body+='目標 '+r.dueMileage.toLocaleString('ja-JP')+' km（残 '+(r.dueMileage-lCur).toLocaleString('ja-JP')+' km）';
+              if(r.dueDate)body+=(body?' · ':'')+'期限 '+r.dueDate.replace(/-/g,'/');
+              try{new Notification('CarLog: '+r.type,{body:body||'対応が必要です',icon:'./icon.svg'});}catch(e){}
+            });
+          }
         }
       }).catch(function(e){console.warn('load:',e);}).then(function(){loaded.current=true;});
     },[]);
@@ -658,15 +836,26 @@ var idb = {
       saveTimer.current = setTimeout(function(){
         if(!loaded.current) return;
         setSaveSt('saving');
-        idb.set(SK, JSON.stringify({vehicle:vehicle,maint:maint,fuel:fuel,remind:remind}))
+        idb.set(SK, JSON.stringify({vehicle:vehicle,maint:maint,fuel:fuel,remind:remind,notif:notifSetting}))
           .then(function(){ setSaveSt('saved'); setTimeout(function(){setSaveSt('idle');},2000); })
-          .catch(function(e){ console.warn('save:',e); setSaveSt('error'); setTimeout(function(){setSaveSt('idle');},3000); });
+          .catch(function(e){ console.warn('save:',e); setSaveSt('error'); showToast('保存に失敗しました','error'); setTimeout(function(){setSaveSt('idle');},3000); });
       }, 600);
       return function(){clearTimeout(saveTimer.current);};
-    },[vehicle,maint,fuel,remind]);
+    },[vehicle,maint,fuel,remind,notifSetting]);
+
+    // 通知許可状態を同期
+    useEffect(function(){
+      if('Notification' in window) setNotifPerm(Notification.permission);
+    },[]);
 
     // Derived
-    var cur = vehicle.mileage;
+    // 総走行距離: 全記録の最大値 と 手動設定値 の大きい方を使用（案B）
+    var cur = useMemo(function(){
+      var allMileages = [vehicle.mileage];
+      maint.forEach(function(m){ if(m.mileage) allMileages.push(m.mileage); });
+      fuel.forEach(function(f){ if(f.mileage) allMileages.push(f.mileage); });
+      return Math.max.apply(null, allMileages);
+    }, [vehicle.mileage, maint, fuel]);
     var sfuel = useMemo(function(){ return fuel.slice().sort(function(a,b){return a.date<b.date?-1:1;}); },[fuel]);
     var fChart = useMemo(function(){
       var r=[];
@@ -710,16 +899,35 @@ var idb = {
     function rPct(r) {
       if(r.done) return 100;
       if(r.dueMileage){
+        // 同じ種類の最後のメンテ距離をスタートとして進捗を計算
         var last=maint.filter(function(m){return m.type===r.type;}).sort(function(a,b){return b.mileage-a.mileage;})[0];
-        var start=last?last.mileage:cur-5000;
+        var start=last?last.mileage:Math.max(0,r.dueMileage-5000);
+        if(r.dueMileage<=start) return 100;
         return Math.min(100,Math.max(0,Math.round((cur-start)/(r.dueMileage-start)*100)));
       }
       if(r.dueDate){
-        var rem=(new Date(r.dueDate)-new Date())/86400000;
-        return Math.min(100,Math.max(0,Math.round((365-rem)/365*100)));
+        // 登録日からの経過割合（登録日が不明なので180日前をスタートとする）
+        var due=new Date(r.dueDate), now=new Date();
+        var totalDays=180; // 半年スパンで進捗表示
+        var elapsed=totalDays-(due-now)/86400000;
+        return Math.min(100,Math.max(0,Math.round(elapsed/totalDays*100)));
       }
       return 0;
     }
+    // 次回メンテ: リマインダー未完了を残り距離/日数が近い順に並べる
+    var nextMaints = useMemo(function(){
+      return remind.filter(function(r){return !r.done;}).map(function(r){
+        var remKm = r.dueMileage ? r.dueMileage - cur : null;
+        var remDay = r.dueDate ? Math.ceil((new Date(r.dueDate)-new Date())/86400000) : null;
+        return assign(r,{remKm:remKm,remDay:remDay});
+      }).sort(function(a,b){
+        // 距離ベースを優先、次に日付ベース
+        var scoreA = a.remKm!=null ? a.remKm : (a.remDay!=null ? a.remDay*10 : 99999);
+        var scoreB = b.remKm!=null ? b.remKm : (b.remDay!=null ? b.remDay*10 : 99999);
+        return scoreA - scoreB;
+      }).slice(0,3);
+    },[remind,cur]);
+
     var lfm = useMemo(function(){return fuel.length?Math.max.apply(null,fuel.map(function(f){return f.mileage;})):null;},[fuel]);
     var lfd = useMemo(function(){return sfuel.length?sfuel[sfuel.length-1].date:null;},[sfuel]);
 
@@ -743,18 +951,25 @@ var idb = {
       if(editId) setMaint(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId}):x;});});
       else setMaint(function(p){return [assign(r,{id:Date.now()})].concat(p);});
       setModal(null);
+      showToast('メンテ記録を保存しました ✓');
     }
     function saveFuel2() {
       var r=assign(fF,{mileage:+fF.mileage,liters:+fF.liters,price:+fF.price,unit:+fF.unit});
-      if(editId) setFuel(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId}):x;});});
-      else setFuel(function(p){return [assign(r,{id:Date.now()})].concat(p);});
+      if(editId) {
+        setFuel(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId}):x;});});
+      } else {
+        setFuel(function(p){return [assign(r,{id:Date.now()})].concat(p);});
+        if(r.mileage > cur) setVehicle(function(v){return assign(v,{mileage:r.mileage});});
+      }
       setModal(null);
+      showToast('給油記録を保存しました ✓');
     }
     function saveRemind() {
       var r=assign(rF,{dueMileage:rF.dueMileage?+rF.dueMileage:null,done:false});
       if(editId) setRemind(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId,done:x.done}):x;});});
       else setRemind(function(p){return p.concat([assign(r,{id:Date.now()})]);});
       setModal(null);
+      showToast('リマインダーを保存しました ✓');
     }
     function saveVehicle() { setVehicle(vF); setModal(null); }
 
@@ -829,7 +1044,19 @@ var idb = {
         onDelete:function(){setRemind(function(p){return p.filter(function(x){return x.id!==r.id;});});},
         style:{background:'var(--surface2)',border:'1px solid '+(iu?'rgba(244,63,94,.25)':'var(--border)'),borderRadius:18,animation:iu?'pulse-border 2.5s ease infinite':undefined}},
         h('div',{style:{borderBottom:'1px solid var(--border2)',padding:'12px 15px',display:'flex',alignItems:'center',gap:10}},
-          h('button',{onClick:function(){setRemind(function(p){return p.map(function(x){return x.id===r.id?assign(x,{done:true}):x;});});},
+          h('button',{onClick:function(){
+              var tmplMatch=TMPLS.find(function(t){return t.type===r.type&&t.km;});
+              if(tmplMatch){
+                setRemind(function(p){
+                  return p.map(function(x){return x.id===r.id?assign(x,{done:true}):x;})
+                    .concat([{id:Date.now(),type:r.type,dueMileage:cur+tmplMatch.km,dueDate:null,done:false}]);
+                });
+                showToast('完了！次回を '+fmt(cur+tmplMatch.km)+' km に設定しました');
+              } else {
+                setRemind(function(p){return p.map(function(x){return x.id===r.id?assign(x,{done:true}):x;});});
+                showToast(r.type+' を完了しました ✓');
+              }
+            },
             style:assign(S.bI,{padding:0,flexShrink:0,color:'var(--surface3)'})},
             h(Ico,{name:'check',size:23})),
           h('div',{style:{flex:1,minWidth:0}},
@@ -864,12 +1091,37 @@ var idb = {
       );
     }
 
-    return h('div',{style:{minHeight:'100vh',background:'#000',color:'var(--text)',paddingBottom:72,fontFamily:"'Inter','Noto Sans JP',system-ui,sans-serif"}},
+    return h('div',{className:'app-shell'},
+
+      // ── Sidebar (desktop) ────────────────────────────────────────────────
+      h('nav',{className:'sidebar'},
+        h('div',{className:'sidebar-logo'},
+          h('div',{className:'sidebar-logo-icon'},h(Ico,{name:'car',size:17,color:'#000'})),
+          h('div',null,
+            h('div',{className:'sidebar-logo-text'},'CarLog'),
+            h('div',{className:'sidebar-logo-sub'},vehicle.name+' · '+vehicle.year)
+          )
+        ),
+        h('div',{className:'sidebar-nav'},
+          TABS.map(function(t,i){
+            return h('button',{key:t.l,className:'sidebar-item'+(tab===i?' active':''),onClick:function(){setTab(i);}},
+              h(Ico,{name:t.n,size:18}),h('span',null,t.l));
+          })
+        ),
+        h('div',{className:'sidebar-footer'},
+          h('div',{className:'sidebar-footer-stat'},'現在の走行距離'),
+          h('div',{className:'sidebar-footer-val'},fmt(cur)+' km'),
+          h('div',{className:'sidebar-footer-sub'},vehicle.fuelType)
+        )
+      ),
+
+      // ── Main content ─────────────────────────────────────────────────────
+      h('div',{className:'main-content'},
 
       // ── Header ──────────────────────────────────────────────────────────
-      h('div',{style:{background:'rgba(0,0,0,.85)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderBottom:'1px solid var(--border)',padding:'0 18px',position:'sticky',top:0,zIndex:80}},
-        h('div',{style:{maxWidth:700,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:56}},
-          h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+      h('div',{className:'app-header'},
+        h('div',{style:{maxWidth:860,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:56}},
+          h('div',{className:'header-logo',style:{display:'flex',alignItems:'center',gap:10}},
             h('div',{style:{width:34,height:34,background:'var(--amber)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(245,158,11,.35)'}},
               h(Ico,{name:'car',size:17,color:'#000'})),
             h('div',null,
@@ -883,9 +1135,9 @@ var idb = {
             saveSt==='error'  ? h('div',{style:{fontSize:10,color:'var(--red)'}},'保存失敗') : null,
             h('button',{className:'btn-icon',onClick:function(){setVF(assign({},vehicle));setImpErr('');setModal('settings');},style:assign(S.bI,{color:'var(--text2)'})},
               h(Ico,{name:'cog',size:20})),
-            h('div',null,
+            h('div',{className:'header-mileage'},
               h('div',{className:'stat-num',style:{fontSize:17,fontWeight:700,color:'var(--amber)',letterSpacing:'-.5px',textAlign:'right'}},fmt(cur)),
-              h('div',{style:{fontSize:9,color:'var(--text3)',textAlign:'right',letterSpacing:'.3px'}},vehicle.fuelType+' · km')
+              h('div',{style:{fontSize:9,color:'var(--text3)',textAlign:'right',letterSpacing:'.3px'}},vehicle.fuelType+' · km · 自動')
             )
           )
         )
@@ -893,7 +1145,7 @@ var idb = {
 
       // Urgent banner
       urgentR.length > 0 ? h('div',{className:'banner',style:{background:'rgba(244,63,94,.07)',borderBottom:'1px solid rgba(244,63,94,.15)',padding:'0 18px'}},
-        h('div',{style:{maxWidth:700,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:40}},
+        h('div',{style:{maxWidth:860,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:40}},
           h('div',{style:{display:'flex',alignItems:'center',gap:7,color:'#fb7185',fontSize:12,fontWeight:600}},
             h(Ico,{name:'alert',size:13}),' 要対応 '+urgentR.length+' 件'),
           h('button',{onClick:function(){setTab(3);},style:{fontSize:11,color:'#fb7185',background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.2)',borderRadius:8,padding:'4px 12px',cursor:'pointer',display:'flex',alignItems:'center',gap:3,fontWeight:600}},'確認',h(Ico,{name:'right',size:11}))
@@ -901,7 +1153,7 @@ var idb = {
       ) : null,
 
       // Page content
-      h('div',{style:{maxWidth:700,margin:'0 auto',padding:'14px 16px 0'}},
+      h('div',{style:{maxWidth:860,margin:'0 auto',padding:'16px 20px 0'}},
 
         // ── HOME ──
         tab===0 ? h('div',{className:'tab-pane',style:{display:'flex',flexDirection:'column',gap:14}},
@@ -973,6 +1225,33 @@ var idb = {
             )
           ),
 
+          // 次回メンテ予定
+          nextMaints.length > 0 ? h('div',{className:'crd',style:{padding:0,overflow:'hidden'}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'13px 16px',borderBottom:'1px solid var(--border2)'}},
+              h('div',{style:{fontWeight:600,fontSize:14,letterSpacing:'-.3px'}},'次回メンテ予定'),
+              h('button',{onClick:function(){setTab(3);},style:{fontSize:11,color:'var(--text3)',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:2}},'リマインダー',h(Ico,{name:'right',size:12}))
+            ),
+            nextMaints.map(function(r){
+              var isUrgent = (r.remKm!=null&&r.remKm<=1000)||(r.remDay!=null&&r.remDay<=30);
+              var barColor = isUrgent?'var(--red)':r.remKm!=null&&r.remKm<=3000?'var(--amber)':'var(--cyan)';
+              return h('div',{key:r.id,className:'next-maint-row',style:{padding:'11px 16px',cursor:'pointer'},onClick:function(){setTab(3);}},
+                h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                  h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+                    h('div',{style:{width:30,height:30,borderRadius:8,background:isUrgent?'rgba(244,63,94,.1)':'var(--surface3)',border:'1px solid '+(isUrgent?'rgba(244,63,94,.2)':'var(--border)'),display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},
+                      h(Ico,{name:'wrench',size:13,color:isUrgent?'#fb7185':'var(--text3)'})),
+                    h('div',null,
+                      h('div',{style:{fontSize:13,fontWeight:600,letterSpacing:'-.2px'}},r.type),
+                      h('div',{className:'stat-num',style:{fontSize:10,color:'var(--text3)',marginTop:2}},
+                        r.remKm!=null ? '残 '+fmt(r.remKm)+' km' + (r.remDay!=null?' · '+r.remDay+'日':'') : r.remDay!=null ? '残 '+r.remDay+' 日' : ''
+                      )
+                    )
+                  ),
+                  isUrgent ? h('span',{style:{padding:'2px 8px',borderRadius:6,fontSize:10,fontWeight:700,background:'rgba(244,63,94,.1)',color:'#fb7185',border:'1px solid rgba(244,63,94,.2)'}},'要対応') : null
+                )
+              );
+            })
+          ) : null,
+
           // 直近メンテ
           h('div',{className:'crd',style:{padding:0,overflow:'hidden'}},
             h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid var(--border2)'}},
@@ -1014,9 +1293,18 @@ var idb = {
             KpiCard('メンテ総費用','¥'+fmt(totalCost),'var(--amber)'),
             KpiCard('記録件数',maint.length+'件','var(--text)')
           ),
+          h('div',{className:'search-wrap'},
+            h(Ico,{name:'search',size:15,style:{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',pointerEvents:'none'}}),
+            h('input',{className:'search-inp',type:'text',placeholder:'種類・メモで検索…',value:maintSearch,
+              onChange:function(e){setMaintSearch(e.target.value);}})
+          ),
           h('div',{className:'shint'},'右スワイプ: 編集　左スワイプ: 削除'),
           h('div',{style:{display:'flex',flexDirection:'column',gap:8}},
-            maint.slice().sort(function(a,b){return a.date<b.date?1:-1;}).map(function(m){return MCard(m);})
+            maint.slice().sort(function(a,b){return a.date<b.date?1:-1;}).filter(function(m){
+              if(!maintSearch) return true;
+              var q=maintSearch.toLowerCase();
+              return m.type.toLowerCase().includes(q)||(m.note||'').toLowerCase().includes(q)||fd(m.date).includes(q);
+            }).map(function(m){return MCard(m);})
           )
         ) : null,
 
@@ -1062,10 +1350,19 @@ var idb = {
               ),
               h(SvgLine,{data:fChart,xKey:'date',yKey:'kmL',color:'#f59e0b',height:140})
             ),
+            h('div',{className:'search-wrap'},
+              h(Ico,{name:'search',size:15,style:{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',pointerEvents:'none'}}),
+              h('input',{className:'search-inp',type:'text',placeholder:'日付・距離で検索…',value:fuelSearch,
+                onChange:function(e){setFuelSearch(e.target.value);}})
+            ),
             h('div',{className:'shint'},'右スワイプ: 編集　左スワイプ: 削除'),
             // Fuel list
             h('div',{style:{display:'flex',flexDirection:'column',gap:8}},
-              desc.map(function(f,i){
+              desc.filter(function(f){
+                if(!fuelSearch) return true;
+                var q=fuelSearch.toLowerCase();
+                return fd(f.date).includes(q)||String(f.mileage).includes(q)||String(f.price).includes(q);
+              }).map(function(f,i){
                 var prev=desc[i+1];
                 var kl=prev?((f.mileage-prev.mileage)/f.liters).toFixed(1):null;
                 var af=parseFloat(avgKmL), kn=kl?parseFloat(kl):null;
@@ -1082,7 +1379,9 @@ var idb = {
                       h('div',null,
                         h('div',{style:{fontSize:14,fontWeight:600,letterSpacing:'-.3px'}},fd(f.date)),
                         h('div',{className:'stat-num',style:{fontSize:10,color:'var(--text3)',marginTop:2}},
-                          fmt(f.mileage)+' km',ds(f.date)>0?h('span',{style:{marginLeft:8}},ds(f.date)+'日前'):null)
+                          fmt(f.mileage)+' km',
+                          prev?h('span',{style:{marginLeft:8,color:'var(--cyan)'}},'+'+fmt(f.mileage-prev.mileage)+' km'):null,
+                          ds(f.date)>0?h('span',{style:{marginLeft:6}},ds(f.date)+'日前'):null)
                       )
                     ),
                     h('div',{style:{display:'flex',gap:4}},
@@ -1172,30 +1471,6 @@ var idb = {
               h('div',{style:{flexShrink:0}},
                 h(SvgDonut,{data:catData,colors:PIE,size:130})
               ),
-              h('div',{style:{flex:1,display:'flex',flexDirection:'column',gap:7}},
-                catData.map(function(c,i){
-                  return h('div',{key:c.name},
-                    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:3}},
-                      h('div',{style:{display:'flex',alignItems:'center',gap:6}},
-                        h('div',{style:{width:8,height:8,borderRadius:2,background:PIE[i%PIE.length],flexShrink:0}}),
-                        h('span',{style:{fontSize:11,color:'#aaa',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:90}},c.name)
-                      ),
-                      h('span',{style:{fontSize:11,fontFamily:'monospace',color:'#ccc',marginLeft:6,flexShrink:0}},'¥'+fmt(c.value))
-                    ),
-                    h('div',{style:{height:3,borderRadius:2,background:'var(--border)',overflow:'hidden'}},
-                      h('div',{style:{height:'100%',borderRadius:2,width:Math.round(c.value/totalCost*100)+'%',background:PIE[i%PIE.length]}})
-                    )
-                  );
-                })
-              )
-            )
-          ),
-          h('div',{className:'crd'},
-            h('div',{style:{fontWeight:600,fontSize:14,marginBottom:14,letterSpacing:'-.3px'}},'項目別費用内訳'),
-            h('div',{style:{display:'flex',gap:16,alignItems:'center'}},
-              h('div',{style:{flexShrink:0}},
-                h(SvgDonut,{data:catData,colors:PIE,size:130})
-              ),
               h('div',{style:{flex:1,display:'flex',flexDirection:'column',gap:8}},
                 catData.map(function(c,i){
                   return h('div',{key:c.name},
@@ -1215,12 +1490,22 @@ var idb = {
             )
           ),
           h('div',{className:'crd'},
-            h('div',{style:{fontWeight:600,fontSize:14,marginBottom:14,letterSpacing:'-.3px'}},'給油単価推移 ',h('span',{style:{fontSize:11,color:'var(--text3)',fontWeight:400}},'(円/L)')),
-            h(SvgLine,{data:unitTrend,xKey:'date',yKey:'unit',color:'var(--cyan)',height:130})
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:14}},
+              h('div',{style:{fontWeight:600,fontSize:14,letterSpacing:'-.3px'}},'給油単価推移'),
+              unitTrend.length ? h('div',{style:{display:'flex',gap:12}},
+                h('span',{className:'stat-num',style:{fontSize:11,color:'var(--green)'}},
+                  '最安 ¥'+Math.min.apply(null,unitTrend.map(function(d){return d.unit;})).toFixed(0)),
+                h('span',{className:'stat-num',style:{fontSize:11,color:'var(--amber)'}},
+                  '最近 ¥'+unitTrend[unitTrend.length-1].unit)
+              ) : null
+            ),
+            h(SvgBar,{data:unitTrend,xKey:'date',yKey:'unit',color:'var(--cyan)',height:150})
           )
         ) : null
 
-      ),
+      )
+
+      ), // end main-content
 
       // Bottom Nav
       h('nav',{className:'bottom-nav'},
@@ -1230,6 +1515,12 @@ var idb = {
             h('span',null,t.l));
         })
       ),
+
+      // Toast
+      toast ? h('div',{className:'toast '+toast.type},
+        h('span',null, toast.type==='success' ? '✓' : '✕'),
+        toast.msg
+      ) : null,
 
       // Modal
       modal ? h('div',{className:'overlay',onClick:function(){setModal(null);}},
@@ -1276,6 +1567,15 @@ var idb = {
                   },'現在値') : null
                 ),
                 h('input',{type:'number',style:S.inp,placeholder:String(cur),inputMode:'numeric',value:mF.mileage,onChange:function(e){setMF(function(p){return assign(p,{mileage:e.target.value});})}})
+              ),
+              h('div',null,
+                mF.mileage ? h('div',{className:'inc-chips'},
+                  [-500,-100,100,500].map(function(d){
+                    return h('button',{key:d,className:'inc-chip '+(d<0?'neg':'pos'),
+                      onClick:function(){setMF(function(p){return assign(p,{mileage:String(Math.max(0,(+p.mileage||0)+d))});});}
+                    },(d>0?'+':'')+d.toLocaleString());
+                  })
+                ) : null
               ),
               h('div',null,h('label',{style:S.lbl},'費用 (円)'),h('input',{type:'number',style:S.inp,placeholder:'5000',inputMode:'numeric',value:mF.cost,onChange:function(e){setMF(function(p){return assign(p,{cost:e.target.value});})}}))
             ),
@@ -1332,7 +1632,12 @@ var idb = {
                 h('div',null,h('label',{style:S.lbl},'年式'),h('input',{style:S.inp,placeholder:'2019',value:vF.year,onChange:function(e){setVF(function(p){return assign(p,{year:e.target.value});})}}))
               ),
               h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
-                h('div',null,h('label',{style:S.lbl},'走行距離 (km)'),h('input',{type:'number',style:S.inp,inputMode:'numeric',value:vF.mileage,onChange:function(e){setVF(function(p){return assign(p,{mileage:+e.target.value});})}})),
+                h('div',null,
+                  h('label',{style:S.lbl},'基準走行距離 (km)'),
+                  h('div',{style:{fontSize:11,color:'var(--text3)',marginBottom:7,lineHeight:1.5}},'現在値: '+fmt(cur)+' km（記録から自動計算）'),
+                  h('input',{type:'number',style:S.inp,inputMode:'numeric',value:vF.mileage,
+                    onChange:function(e){setVF(function(p){return assign(p,{mileage:+e.target.value});});}})
+                ),
                 h('div',null,h('label',{style:S.lbl},'燃料種別'),
                   h('select',{style:assign(S.inp,{cursor:'pointer'}),value:vF.fuelType,onChange:function(e){setVF(function(p){return assign(p,{fuelType:e.target.value});});}},
                     ['レギュラー','ハイオク','軽油','電気'].map(function(f){return h('option',{key:f,value:f},f);})
@@ -1358,6 +1663,60 @@ var idb = {
             ),
             h('input',{ref:iref,type:'file',accept:'.json',style:{display:'none'},onChange:doImport}),
             impErr ? h('div',{style:{fontSize:12,color:'#fb7185',background:'rgba(244,63,94,.06)',border:'1px solid rgba(244,63,94,.15)',borderRadius:10,padding:'10px 14px',marginTop:10}},impErr) : null,
+            h('div',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.7px',marginBottom:14,marginTop:24}},'通知設定'),
+            h('div',{style:{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:16,overflow:'hidden'}},
+              h('div',{className:'srow'},
+                h('div',null,
+                  h('div',{style:{fontSize:13,fontWeight:600,letterSpacing:'-.2px'}},'ブラウザ通知'),
+                  h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:3}},
+                    notifPerm==='granted' ? '許可済み ✓' :
+                    notifPerm==='denied'  ? 'ブラウザ設定から許可してください' : '未許可'
+                  )
+                ),
+                notifPerm!=='granted'
+                  ? h('button',{
+                      onClick:function(){
+                        if(!('Notification' in window)) return;
+                        Notification.requestPermission().then(function(p){ setNotifPerm(p); });
+                      },
+                      disabled:notifPerm==='denied',
+                      style:assign(S.bG,{display:'flex',alignItems:'center',gap:6,fontSize:12,padding:'8px 14px',opacity:notifPerm==='denied'?.4:1})
+                    }, h(Ico,{name:'bell',size:13}), '通知を許可')
+                  : h('button',{
+                      onClick:function(){ setNotifSetting(function(p){return assign({},p,{enabled:!p.enabled});}); },
+                      style:{width:44,height:24,borderRadius:12,border:'none',cursor:'pointer',
+                        background:notifSetting.enabled?'var(--amber)':'var(--surface3)',
+                        transition:'background .2s',position:'relative',flexShrink:0}
+                    },
+                      h('div',{style:{width:18,height:18,borderRadius:9,background:'#fff',position:'absolute',
+                        top:3,transition:'left .2s',left:notifSetting.enabled?'23px':'3px'}})
+                    )
+              ),
+              notifPerm==='granted' && notifSetting.enabled
+                ? h('div',{className:'srow'},
+                    h('div',null,
+                      h('div',{style:{fontSize:13,fontWeight:600,letterSpacing:'-.2px'}},'通知タイミング'),
+                      h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:3}},'残り距離・日数での通知しきい値')
+                    ),
+                    h('select',{
+                      style:assign(S.inp,{width:'auto',cursor:'pointer',padding:'7px 10px',fontSize:12}),
+                      value:String(notifSetting.timing||1000),
+                      onChange:function(e){
+                        var v=+e.target.value;
+                        var dayMap={1000:30,2000:60,3000:90};
+                        setNotifSetting(function(p){return assign({},p,{timing:v,timingDay:dayMap[v]||30});});
+                      }
+                    },
+                      h('option',{value:'1000'},'残 1,000km / 30日'),
+                      h('option',{value:'2000'},'残 2,000km / 60日'),
+                      h('option',{value:'3000'},'残 3,000km / 90日')
+                    )
+                  )
+                : null
+            ),
+            notifPerm==='granted' && notifSetting.enabled
+              ? h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:8,padding:'0 4px',lineHeight:1.6}},'アプリを開いたとき（1日1回）、対応が必要なリマインダーを通知します。')
+              : null,
             h('div',{style:{marginTop:20,padding:'12px 0',borderTop:'1px solid var(--border2)',display:'flex',justifyContent:'space-between',alignItems:'center'}},
               h('div',{className:'stat-num',style:{fontSize:11,color:'var(--text3)'}},'CarLog v5 · PWA'),
               h('div',{className:'stat-num',style:{fontSize:11,color:'var(--text3)'}},'メンテ '+maint.length+'件 · 給油 '+fuel.length+'件')
