@@ -791,55 +791,75 @@ var idb = {
 
     // Storage load
     useEffect(function(){
-      idb.get(SK).then(function(r){
-        var lV=IV,lM=IM,lF=IFU,lR=IR,lN={enabled:false,timing:1000,timingDay:30};
-        if(r && r.value) {
-          try {
-            var d=JSON.parse(r.value);
-            if(d.vehicle){setVehicle(d.vehicle);lV=d.vehicle;}
-            if(d.maint && d.maint.length){setMaint(d.maint);lM=d.maint;}
-            if(d.fuel  && d.fuel.length){setFuel(d.fuel);lF=d.fuel;}
-            if(d.remind && d.remind.length){setRemind(d.remind);lR=d.remind;}
-            if(d.notif){setNotifSetting(d.notif);lN=d.notif;}
-          } catch(e) { console.warn('parse error',e); }
-        }
-        // 起動時通知チェック（1日1回）
-        if(lN.enabled && 'Notification' in window && Notification.permission==='granted') {
+      var lV=IV,lM=IM,lF=IFU,lR=IR,lN={enabled:false,timing:1000,timingDay:30};
+
+      function parseAndApply(raw) {
+        if(!raw) return;
+        try {
+          var d=JSON.parse(raw);
+          if(d.vehicle){setVehicle(d.vehicle);lV=d.vehicle;}
+          if(d.maint!=null){setMaint(d.maint);lM=d.maint;}
+          if(d.fuel!=null){setFuel(d.fuel);lF=d.fuel;}
+          if(d.remind!=null){setRemind(d.remind);lR=d.remind;}
+          if(d.notif){setNotifSetting(d.notif);lN=d.notif;}
+        } catch(e){console.warn('parse error',e);}
+      }
+
+      function runNotifCheck() {
+        if(!lN.enabled||!('Notification' in window)||Notification.permission!=='granted') return;
+        try {
           var today=new Date().toISOString().slice(0,10);
-          if(localStorage.getItem('carlog-notif-checked')!==today) {
-            localStorage.setItem('carlog-notif-checked',today);
-            var allM=[lV.mileage];
-            lM.forEach(function(m){if(m.mileage)allM.push(m.mileage);});
-            lF.forEach(function(f){if(f.mileage)allM.push(f.mileage);});
-            var lCur=Math.max.apply(null,allM);
-            var thr=lN.timing||1000, thrD=lN.timingDay||30;
-            lR.filter(function(r){
-              if(r.done)return false;
-              if(r.dueMileage&&lCur>=r.dueMileage-thr)return true;
-              if(r.dueDate&&(new Date(r.dueDate)-new Date())/86400000<=thrD)return true;
-              return false;
-            }).forEach(function(r){
-              var body='';
-              if(r.dueMileage)body+='目標 '+r.dueMileage.toLocaleString('ja-JP')+' km（残 '+(r.dueMileage-lCur).toLocaleString('ja-JP')+' km）';
-              if(r.dueDate)body+=(body?' · ':'')+'期限 '+r.dueDate.replace(/-/g,'/');
-              try{new Notification('CarLog: '+r.type,{body:body||'対応が必要です',icon:'./icon.svg'});}catch(e){}
-            });
-          }
-        }
-      }).catch(function(e){console.warn('load:',e);}).then(function(){loaded.current=true;});
+          if(localStorage.getItem('carlog-notif-checked')===today) return;
+          localStorage.setItem('carlog-notif-checked',today);
+          var allM=[lV.mileage];
+          lM.forEach(function(m){if(m.mileage)allM.push(m.mileage);});
+          lF.forEach(function(f){if(f.mileage)allM.push(f.mileage);});
+          var lCur=Math.max.apply(null,allM);
+          var thr=lN.timing||1000, thrD=lN.timingDay||30;
+          lR.filter(function(r){
+            if(r.done)return false;
+            if(r.dueMileage&&lCur>=r.dueMileage-thr)return true;
+            if(r.dueDate&&(new Date(r.dueDate)-new Date())/86400000<=thrD)return true;
+            return false;
+          }).forEach(function(r){
+            var body='';
+            if(r.dueMileage)body+='目標 '+r.dueMileage.toLocaleString('ja-JP')+' km（残 '+(r.dueMileage-lCur).toLocaleString('ja-JP')+' km）';
+            if(r.dueDate)body+=(body?' · ':'')+'期限 '+r.dueDate.replace(/-/g,'/');
+            try{new Notification('CarLog: '+r.type,{body:body||'対応が必要です',icon:'./icon.svg'});}catch(ne){}
+          });
+        } catch(ne){console.warn('notif check error',ne);}
+      }
+
+      idb.get(SK).then(function(r){
+        // IndexedDB優先、なければlocalStorageから復元
+        var raw=r&&r.value;
+        if(!raw){try{raw=localStorage.getItem(SK);}catch(e){}}
+        parseAndApply(raw);
+        runNotifCheck();
+        loaded.current=true;
+      }).catch(function(e){
+        console.warn('idb load error:',e);
+        // IndexedDB失敗時はlocalStorageから復元（初期データ上書きを防ぐ）
+        var raw; try{raw=localStorage.getItem(SK);}catch(le){}
+        parseAndApply(raw);
+        loaded.current=true;
+      });
     },[]);
 
-    // Debounced save
+    // Debounced save（IndexedDB + localStorage同期バックアップ）
     var saveTimer=useRef(null);
     useEffect(function(){
       clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(function(){
         if(!loaded.current) return;
+        var json=JSON.stringify({vehicle:vehicle,maint:maint,fuel:fuel,remind:remind,notif:notifSetting});
+        // localStorage に即時同期保存（ページ離脱前でも保持される）
+        try{localStorage.setItem(SK,json);}catch(e){}
         setSaveSt('saving');
-        idb.set(SK, JSON.stringify({vehicle:vehicle,maint:maint,fuel:fuel,remind:remind,notif:notifSetting}))
-          .then(function(){ setSaveSt('saved'); setTimeout(function(){setSaveSt('idle');},2000); })
-          .catch(function(e){ console.warn('save:',e); setSaveSt('error'); showToast('保存に失敗しました','error'); setTimeout(function(){setSaveSt('idle');},3000); });
-      }, 600);
+        idb.set(SK,json)
+          .then(function(){setSaveSt('saved');setTimeout(function(){setSaveSt('idle');},2000);})
+          .catch(function(e){console.warn('save:',e);setSaveSt('error');showToast('保存に失敗しました','error');setTimeout(function(){setSaveSt('idle');},3000);});
+      }, 300);
       return function(){clearTimeout(saveTimer.current);};
     },[vehicle,maint,fuel,remind,notifSetting]);
 
