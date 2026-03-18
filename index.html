@@ -939,7 +939,7 @@ var idb = {
       return remind.filter(function(r){return !r.done;}).map(function(r){
         var remKm = r.dueMileage ? r.dueMileage - cur : null;
         var remDay = r.dueDate ? Math.ceil((new Date(r.dueDate)-new Date())/86400000) : null;
-        return assign(r,{remKm:remKm,remDay:remDay});
+        return assign({},r,{remKm:remKm,remDay:remDay});
       }).sort(function(a,b){
         // 距離ベースを優先、次に日付ベース
         var scoreA = a.remKm!=null ? a.remKm : (a.remDay!=null ? a.remDay*10 : 99999);
@@ -954,7 +954,7 @@ var idb = {
     // CRUD helpers
     function openAdd(t) {
       setEditId(null);
-      if(t==='maint') setMF(assign(eM,{mileage:String(cur)}));
+      if(t==='maint') setMF(assign({},eM,{mileage:String(cur)}));
       else if(t==='fuel') setFF(assign({},eF));
       else setRF(assign({},eR));
       setTmpl(false); setModal(t);
@@ -979,7 +979,7 @@ var idb = {
         setFuel(function(p){return p.map(function(x){return x.id===editId?assign(r,{id:editId}):x;});});
       } else {
         setFuel(function(p){return [assign(r,{id:Date.now()})].concat(p);});
-        if(r.mileage > cur) setVehicle(function(v){return assign(v,{mileage:r.mileage});});
+        if(r.mileage > cur) setVehicle(function(v){return assign({},v,{mileage:r.mileage});});
       }
       setModal(null);
       showToast('給油記録を保存しました ✓');
@@ -1566,7 +1566,7 @@ var idb = {
                     key:t.type,
                     className:'tmpl-chip'+(mF.type===t.type?' selected':''),
                     onClick:function(){
-                      setMF(function(p){return assign(p,{
+                      setMF(function(p){return assign({},p,{
                         type:t.type,
                         mileage:p.mileage||String(cur)
                       });});
@@ -1574,32 +1574,32 @@ var idb = {
                   }, t.type);
                 })
               ),
-              h('input',{style:S.inp,placeholder:'または直接入力…',value:mF.type,onChange:function(e){setMF(function(p){return assign(p,{type:e.target.value});})}})
+              h('input',{style:S.inp,placeholder:'または直接入力…',value:mF.type,onChange:function(e){setMF(function(p){return assign({},p,{type:e.target.value});})}})
             ),
-            h('div',null,h('label',{style:S.lbl},'日付'),h('input',{type:'date',style:S.inp,value:mF.date,onChange:function(e){setMF(function(p){return assign(p,{date:e.target.value});});}})),
+            h('div',null,h('label',{style:S.lbl},'日付'),h('input',{type:'date',style:S.inp,value:mF.date,onChange:function(e){setMF(function(p){return assign({},p,{date:e.target.value});});}})),
             h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
               h('div',null,
                 h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
                   h('label',{style:assign(S.lbl,{marginBottom:0})},'走行距離 (km)'),
                   !mF.mileage ? h('button',{
-                    onClick:function(){setMF(function(p){return assign(p,{mileage:String(cur)});});},
+                    onClick:function(){setMF(function(p){return assign({},p,{mileage:String(cur)});});},
                     style:{fontSize:10,color:'var(--amber)',background:'var(--amber-dim)',border:'none',borderRadius:6,padding:'2px 8px',cursor:'pointer',fontWeight:600}
                   },'現在値') : null
                 ),
-                h('input',{type:'number',style:S.inp,placeholder:String(cur),inputMode:'numeric',value:mF.mileage,onChange:function(e){setMF(function(p){return assign(p,{mileage:e.target.value});})}})
+                h('input',{type:'number',style:S.inp,placeholder:String(cur),inputMode:'numeric',value:mF.mileage,onChange:function(e){setMF(function(p){return assign({},p,{mileage:e.target.value});})}})
               ),
               h('div',null,
                 mF.mileage ? h('div',{className:'inc-chips'},
                   [-500,-100,100,500].map(function(d){
                     return h('button',{key:d,className:'inc-chip '+(d<0?'neg':'pos'),
-                      onClick:function(){setMF(function(p){return assign(p,{mileage:String(Math.max(0,(+p.mileage||0)+d))});});}
+                      onClick:function(){setMF(function(p){return assign({},p,{mileage:String(Math.max(0,(+p.mileage||0)+d))});});}
                     },(d>0?'+':'')+d.toLocaleString());
                   })
                 ) : null
               ),
-              h('div',null,h('label',{style:S.lbl},'費用 (円)'),h('input',{type:'number',style:S.inp,placeholder:'5000',inputMode:'numeric',value:mF.cost,onChange:function(e){setMF(function(p){return assign(p,{cost:e.target.value});})}}))
+              h('div',null,h('label',{style:S.lbl},'費用 (円)'),h('input',{type:'number',style:S.inp,placeholder:'5000',inputMode:'numeric',value:mF.cost,onChange:function(e){setMF(function(p){return assign({},p,{cost:e.target.value});})}}))
             ),
-            h('div',null,h('label',{style:S.lbl},'メモ (任意)'),h('input',{style:S.inp,placeholder:'使用オイルの種類など',value:mF.note,onChange:function(e){setMF(function(p){return assign(p,{note:e.target.value});})}})),
+            h('div',null,h('label',{style:S.lbl},'メモ (任意)'),h('input',{style:S.inp,placeholder:'使用オイルの種類など',value:mF.note,onChange:function(e){setMF(function(p){return assign({},p,{note:e.target.value});})}})),
             h('div',{style:{display:'flex',gap:10,marginTop:4}},
               h('button',{className:'btn-ghost',style:S.bG,onClick:function(){setModal(null);}},'キャンセル'),
               h('button',{className:'btn-primary',style:assign(S.bP,{flex:1,justifyContent:'center'}),onClick:saveMaint,disabled:!mF.date||!mF.type},'保存する')
@@ -1619,7 +1619,7 @@ var idb = {
                     key:t.type,
                     className:'tmpl-chip'+(rF.type===t.type?' selected':''),
                     onClick:function(){
-                      setRF(function(p){return assign(p,{
+                      setRF(function(p){return assign({},p,{
                         type:t.type,
                         dueMileage:t.km?String(cur+t.km):p.dueMileage
                       });});
@@ -1631,11 +1631,11 @@ var idb = {
                   );
                 })
               ),
-              h('input',{style:S.inp,placeholder:'または直接入力…',value:rF.type,onChange:function(e){setRF(function(p){return assign(p,{type:e.target.value});});}})
+              h('input',{style:S.inp,placeholder:'または直接入力…',value:rF.type,onChange:function(e){setRF(function(p){return assign({},p,{type:e.target.value});});}})
             ),
             h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
-              h('div',null,h('label',{style:S.lbl},'目標走行距離 (km)'),h('input',{type:'number',style:S.inp,placeholder:'50000',value:rF.dueMileage,onChange:function(e){setRF(function(p){return assign(p,{dueMileage:e.target.value});})}})),
-              h('div',null,h('label',{style:S.lbl},'期限日'),h('input',{type:'date',style:S.inp,value:rF.dueDate,onChange:function(e){setRF(function(p){return assign(p,{dueDate:e.target.value});})}}))
+              h('div',null,h('label',{style:S.lbl},'目標走行距離 (km)'),h('input',{type:'number',style:S.inp,placeholder:'50000',value:rF.dueMileage,onChange:function(e){setRF(function(p){return assign({},p,{dueMileage:e.target.value});})}})),
+              h('div',null,h('label',{style:S.lbl},'期限日'),h('input',{type:'date',style:S.inp,value:rF.dueDate,onChange:function(e){setRF(function(p){return assign({},p,{dueDate:e.target.value});})}}))
             ),
             h('div',{style:{display:'flex',gap:10,marginTop:4}},
               h('button',{className:'btn-ghost',style:S.bG,onClick:function(){setModal(null);}},'キャンセル'),
@@ -1648,18 +1648,18 @@ var idb = {
             h('div',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.7px',marginBottom:14}},'車両情報'),
             h('div',{style:{display:'flex',flexDirection:'column',gap:12,marginBottom:24}},
               h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
-                h('div',null,h('label',{style:S.lbl},'車名'),h('input',{style:S.inp,placeholder:'Mazda3 XD',value:vF.name,onChange:function(e){setVF(function(p){return assign(p,{name:e.target.value});})}})),
-                h('div',null,h('label',{style:S.lbl},'年式'),h('input',{style:S.inp,placeholder:'2019',value:vF.year,onChange:function(e){setVF(function(p){return assign(p,{year:e.target.value});})}}))
+                h('div',null,h('label',{style:S.lbl},'車名'),h('input',{style:S.inp,placeholder:'Mazda3 XD',value:vF.name,onChange:function(e){setVF(function(p){return assign({},p,{name:e.target.value});})}})),
+                h('div',null,h('label',{style:S.lbl},'年式'),h('input',{style:S.inp,placeholder:'2019',value:vF.year,onChange:function(e){setVF(function(p){return assign({},p,{year:e.target.value});})}}))
               ),
               h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
                 h('div',null,
                   h('label',{style:S.lbl},'基準走行距離 (km)'),
                   h('div',{style:{fontSize:11,color:'var(--text3)',marginBottom:7,lineHeight:1.5}},'現在値: '+fmt(cur)+' km（記録から自動計算）'),
                   h('input',{type:'number',style:S.inp,inputMode:'numeric',value:vF.mileage,
-                    onChange:function(e){setVF(function(p){return assign(p,{mileage:+e.target.value});});}})
+                    onChange:function(e){setVF(function(p){return assign({},p,{mileage:+e.target.value});});}})
                 ),
                 h('div',null,h('label',{style:S.lbl},'燃料種別'),
-                  h('select',{style:assign(S.inp,{cursor:'pointer'}),value:vF.fuelType,onChange:function(e){setVF(function(p){return assign(p,{fuelType:e.target.value});});}},
+                  h('select',{style:assign(S.inp,{cursor:'pointer'}),value:vF.fuelType,onChange:function(e){setVF(function(p){return assign({},p,{fuelType:e.target.value});});}},
                     ['レギュラー','ハイオク','軽油','電気'].map(function(f){return h('option',{key:f,value:f},f);})
                   )
                 )
